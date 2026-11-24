@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jyotish Kundli & Consultation</title>
+<title>Nakshatra Darpan · Kundli & Consultation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,8 +27,14 @@ header{position:sticky;top:0;z-index:20;background:rgba(11,14,23,.88);backdrop-f
 .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;height:62px}
 .brand{display:flex;align-items:center;gap:10px;font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:700}
 .brand svg{width:30px;height:30px;color:var(--gold)}
-.brand b{color:var(--gold)}
-.hours{font-size:13px;color:var(--mut);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.brand b{color:var(--gold)}.brand span{white-space:nowrap}
+.brand{flex:none}
+.hours{font-size:13px;color:var(--mut);display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden}
+.hours #hText{overflow:hidden;text-overflow:ellipsis}.dot{flex:none}
+@media(max-width:480px){.brand{font-size:20px;gap:8px}.brand svg{width:24px;height:24px}.hours{font-size:12px;gap:6px}}
+/* hint for empty date/time inputs (Android shows a blank box) */
+.pick{position:relative}.ph{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mut);pointer-events:none;font-size:16px}
+.pick:not(.has) input{color:transparent}.pick:not(.has) input:focus{color:var(--ink)}.pick.has .ph,.pick:focus-within .ph{display:none}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}.dot.on{background:var(--ok);box-shadow:0 0 0 4px rgba(127,194,155,.18)}
 .hero{padding:34px 0 20px}.hero p{color:var(--mut);max-width:62ch;margin:10px 0 0}
 .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding-bottom:30px}
@@ -149,7 +155,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
 </head>
 <body>
 <header><div class="wrap bar">
-  <div class="brand"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="8" y="8" width="48" height="48"/><path d="M8 8l48 48M56 8L8 56M32 8l24 24-24 24L8 32z"/></svg><span id="bizName">Jyotish <b>AI</b></span></div>
+  <div class="brand"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="8" y="8" width="48" height="48"/><path d="M8 8l48 48M56 8L8 56M32 8l24 24-24 24L8 32z"/></svg><span id="bizName">Nakshatra <b>Darpan</b></span></div>
   <div class="hours"><span class="dot" id="hDot"></span><span id="hText">—</span></div>
 </div></header>
 
@@ -170,11 +176,11 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
           <div class="f"><label for="nm">Full name *</label><input id="nm" autocomplete="name" placeholder="e.g. Aarav Sharma" required></div>
           <div class="row r2">
             <div class="f"><label for="gd">Gender *</label><select id="gd"><option>Male</option><option>Female</option><option>Other</option></select></div>
-            <div class="f"><label for="dob">Date of birth *</label><input id="dob" type="date" required min="1900-01-01" max="2100-12-31"></div>
+            <div class="f"><label for="dob">Date of birth *</label><div class="pick"><input id="dob" type="date" required min="1900-01-01" max="2100-12-31"><span class="ph">Tap to choose date</span></div></div>
           </div>
           <div class="f">
             <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px"><label for="tob" style="margin:0">Time of birth *</label><label class="chk"><input type="checkbox" id="tobU"> Time not known</label></div>
-            <input id="tob" type="time" value="12:00" required>
+            <div class="pick"><input id="tob" type="time" required><span class="ph">Tap to choose time</span></div>
           </div>
           <div class="f">
             <label for="pob">Place of birth *</label>
@@ -333,7 +339,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
 const CONFIG = {
   BUSINESS_NAME: 'Nakshatra Darpan',
   UPI_ID: 'nehatomar210@kotak',          // your UPI VPA (a business/merchant UPI ID works best)
-  PAYEE_NAME: 'Neha Tomar',               // name shown in the UPI app
+  PAYEE_NAME: 'Neha Tomar',     // exactly as registered on your UPI/bank account (what payers see)
   WHATSAPP: '919643330507',               // your WhatsApp number with country code, digits only
   ADMIN_PIN_HASH: '__ADMIN_PIN_HASH__',   // filled in at deploy from your ADMIN_PIN secret — do not put the PIN here
   HOURS: { open: 10, close: 18, label: '10 AM – 6 PM IST' },
@@ -523,7 +529,9 @@ function hoursState() { const h = istNow(), H = CONFIG.HOURS; return { open: h >
 function paintHours() {
   const s = hoursState();
   $('hDot').classList.toggle('on', s.open);
-  $('hText').textContent = s.open ? `Open · replies till ${t12(CONFIG.HOURS.close + ':00')}` : `Closed · opens ${t12(CONFIG.HOURS.open + ':00')} IST`;
+  const hh = h => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`;
+  $('hText').textContent = s.open ? `Open till ${hh(CONFIG.HOURS.close)}` : `Opens ${hh(CONFIG.HOURS.open)}`;
+  $('hText').parentElement.title = `Replies ${CONFIG.HOURS.label}`;
 }
 document.querySelectorAll('.hrsLbl').forEach(e => e.textContent = CONFIG.HOURS.label);
 $('bizName').innerHTML = esc(CONFIG.BUSINESS_NAME).replace(/(\S+)$/, '<b>$1</b>');
@@ -588,7 +596,9 @@ $('manApply').addEventListener('click', () => {
   setPlace({ name: $('pob').value.trim() || 'Custom', region: '', label: $('pob').value.trim() || `${lat}, ${lon}`, lat, lon, tz: null, offsetMin: Math.round(off * 60) });
   $('manual').classList.add('hide');
 });
-$('tobU').addEventListener('change', () => { $('tob').disabled = $('tobU').checked; if ($('tobU').checked) $('tob').value = '12:00'; });
+const syncPh = () => document.querySelectorAll('.pick').forEach(p => p.classList.toggle('has', !!p.querySelector('input').value));
+['dob', 'tob'].forEach(id => ['input', 'change', 'blur'].forEach(ev => $(id).addEventListener(ev, syncPh)));
+$('tobU').addEventListener('change', () => { $('tob').disabled = $('tobU').checked; if ($('tobU').checked) $('tob').value = '12:00'; syncPh(); });
 
 /* ---------------- kundli drawing ---------------- */
 let chart = null, birth = null, style = 'north';
@@ -699,7 +709,7 @@ $('birthForm').addEventListener('submit', e => {
   const name = $('nm').value.trim(), dob = $('dob').value, tobUnknown = $('tobU').checked, tob = tobUnknown ? '12:00' : $('tob').value;
   if (!name) return toast('Please enter the full name'), $('nm').focus();
   if (!dob) return toast('Please enter the date of birth'), $('dob').focus();
-  if (!tob) return toast('Please enter the time of birth'), $('tob').focus();
+  if (!tob) return toast('Choose the time of birth, or tick “Time not known”'), $('tob').focus();
   if (!place) {
     const q = $('pob').value.trim().toLowerCase().split(',')[0], m = CITIES.find(c => c.name.toLowerCase() === q);
     if (m) setPlace(m); else return toast('Pick the birth place from the suggestions'), $('pob').focus();
@@ -739,7 +749,7 @@ $('proceed').addEventListener('click', () => {
   if (!emailOk(email)) return toast('Enter a valid email'), $('cEmail').focus();
   if (digits(phone).length < 10) return toast('Enter a valid WhatsApp number'), $('cPhone').focus();
   store.set('jy_contact', { email, phone });
-  const d = new Date(), id = `JY${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  const d = new Date(), id = `ND${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
   order = { id, plan, qs, email, phone };
   const upi = `upi://pay?pa=${encodeURIComponent(CONFIG.UPI_ID)}&pn=${encodeURIComponent(CONFIG.PAYEE_NAME)}&am=${plan.price.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Jyotish ' + id)}`;
   $('payAmt').textContent = `₹${plan.price}`; $('payPlan').textContent = `${plan.title} · was ₹${plan.mrp}`;
@@ -855,7 +865,7 @@ $('parseBtn').addEventListener('click', () => {
   $('aEmail').value = g('Email'); $('aPhone').value = g('WhatsApp');
   const qm = t.split(/^\s*\*?Questions\*?\s*$/mi)[1] || '';
   $('aQs').value = qm.split('\n').map(l => l.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(l => l && !/screenshot attached/i.test(l)).join('\n');
-  $('birthForm').requestSubmit(); toast('Order loaded and chart cast');
+  syncPh(); $('birthForm').requestSubmit(); toast('Order loaded and chart cast');
 });
 
 const SYS = `You are an experienced, compassionate Vedic astrologer (Jyotishi) trained in Parashari and Jaimini methods. You write personal consultation reports.
@@ -965,6 +975,7 @@ $('rPrint').addEventListener('click', () => {
 /* restore last birth details */
 const lb = store.get('jy_last', null);
 if (lb && lb.birth) { const b = lb.birth; $('nm').value = b.name; $('gd').value = b.gender; $('dob').value = b.dob; $('tob').value = b.tob; $('tobU').checked = b.tobUnknown; $('tob').disabled = b.tobUnknown; if (lb.place) setPlace(lb.place); $('pob').value = b.placeLabel; }
+syncPh();
 }
 </script>
 </body>
