@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jyotish Kundli & Consultation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+/* VOICE: a dignified pandit's desk at night — calm, precise, devotional, never salesy
+   IDEA: the hand-drawn janam patrika — a ruled kundli square with gold ink on deep indigo paper
+   PICTURE: the live North/South Indian kundli drawn from the visitor's own birth moment
+   COLOUR and TYPE: obsidian night, antique gold ink, one vermilion accent for offers; Cormorant Garamond + Plus Jakarta Sans
+   LAYOUT: one calm column on phones; on wide screens form left, patrika right; steps flow birth → chart → ask → pay → send */
+:root{color-scheme:dark;--bg:#0b0e17;--panel:#131a2b;--panel2:#0f1422;--line:rgba(212,175,55,.22);--line2:rgba(212,175,55,.45);--gold:#d4af37;--gold2:#f1d57a;--ink:#f5f2eb;--mut:#a8a399;--red:#e0573a;--ok:#7fc29b}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:76px}
+body{margin:0;background:var(--bg) radial-gradient(1200px 600px at 50% -10%,rgba(212,175,55,.10),transparent 60%) no-repeat;color:var(--ink);font:16px/1.55 "Plus Jakarta Sans",system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;line-height:1.08;margin:0;text-wrap:balance}
+h1{font-size:clamp(32px,5vw,48px)}h2{font-size:28px;color:var(--ink)}h3{font-size:21px;color:var(--gold2)}
+a{color:var(--gold2)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(4vw,14px)}
+header{position:sticky;top:0;z-index:20;background:rgba(11,14,23,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:700}
+.brand svg{width:30px;height:30px;color:var(--gold)}
+.brand b{color:var(--gold)}
+.hours{font-size:13px;color:var(--mut);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}.dot.on{background:var(--ok);box-shadow:0 0 0 4px rgba(127,194,155,.18)}
+.hero{padding:34px 0 20px}.hero p{color:var(--mut);max-width:62ch;margin:10px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding-bottom:30px}
+@media(min-width:980px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start}.sticky{position:sticky;top:80px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:clamp(16px,3vw,26px);box-shadow:0 18px 40px rgba(0,0,0,.4)}
+.card+.card{margin-top:20px}
+.step{font-size:13px;color:var(--gold);font-weight:600;margin-bottom:4px}
+.sub{color:var(--mut);font-size:14px;margin:6px 0 16px}
+label{display:block;font-size:13px;color:var(--mut);margin:0 0 6px;font-weight:500}
+.f{margin-bottom:14px;position:relative}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media(max-width:480px){.row.r2{grid-template-columns:minmax(0,1fr)}}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;min-height:46px}
+textarea{resize:vertical;min-height:84px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,.16)}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.8) sepia(.5) saturate(3)}
+input[type=checkbox]{width:18px;height:18px;min-height:0;accent-color:var(--gold);margin:0}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--gold2);cursor:pointer;margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 18px;border-radius:12px;border:1px solid var(--line2);background:transparent;color:var(--gold2);font:600 15px "Plus Jakarta Sans",sans-serif;cursor:pointer;text-decoration:none;text-align:center}
+.btn:hover{background:rgba(212,175,55,.1)}.btn:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.btn.pri{background:linear-gradient(90deg,#d4af37,#e8c766,#d4af37);color:#14110a;border:0;box-shadow:0 8px 22px rgba(212,175,55,.22)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.wa{background:#1fa855;border:0;color:#fff}
+.btn.sm{min-height:38px;padding:6px 12px;font-size:13px}
+.btn.full{width:100%}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.sugg{position:absolute;left:0;right:0;top:100%;z-index:15;background:#0e1320;border:1px solid var(--line2);border-radius:12px;margin-top:4px;max-height:280px;overflow:auto;display:none}
+.sugg button{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid rgba(212,175,55,.1);color:var(--ink);font:inherit;font-size:15px;padding:11px 13px;cursor:pointer;min-height:44px}
+.sugg button:hover,.sugg button:focus{background:rgba(212,175,55,.12);outline:none}
+.sugg small{color:var(--mut)}
+.coord{font-size:13px;color:var(--mut);display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:8px}
+.coord b{color:var(--gold2);font-weight:600}
+.linkb{background:none;border:0;color:var(--gold2);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:4px 0}
+.hide{display:none!important}
+/* chart */
+.pillars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+@media(min-width:640px){.pillars{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.pill{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.pill span{display:block;font-size:13px;color:var(--mut)}.pill b{display:block;font-family:"Cormorant Garamond",serif;font-size:22px;color:var(--gold2);line-height:1.15;margin-top:2px}
+.pill small{color:var(--mut);font-size:13px}
+.kwrap{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media(min-width:700px){.kwrap{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+.kundli{width:100%;max-width:440px;aspect-ratio:1;margin:0 auto;display:block}
+.tabs{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px}
+.tabs button{background:none;border:0;color:var(--mut);font:600 13px "Plus Jakarta Sans",sans-serif;padding:8px 14px;cursor:pointer;min-height:38px}
+.tabs button.on{background:rgba(212,175,55,.16);color:var(--gold2)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:600;color:var(--mut);text-align:left;font-size:13px;padding:8px 6px;border-bottom:1px solid var(--line2)}
+td{padding:8px 6px;border-bottom:1px solid rgba(212,175,55,.1);vertical-align:top}
+td.n{white-space:nowrap}
+.scroll{overflow-x:auto}
+.tag{display:inline-block;font-size:12px;padding:1px 7px;border-radius:99px;border:1px solid var(--line2);color:var(--gold2);margin-left:4px;white-space:nowrap}
+.tag.r{border-color:rgba(224,87,58,.6);color:#f19a86}
+.kv{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.kv div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(212,175,55,.1);font-size:14px}
+.kv div span{color:var(--mut)}.kv div b{font-weight:600;text-align:right}
+.dasha{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.dasha div{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;padding:6px 10px;border-radius:10px}
+.dasha div.now{background:rgba(212,175,55,.14);border:1px solid var(--line2)}
+.dasha i{display:block;height:6px;border-radius:9px;background:rgba(212,175,55,.35)}
+.dasha small{color:var(--mut);white-space:nowrap}
+.sec{margin-top:22px}.sec h3{margin-bottom:8px}
+.note{font-size:13px;color:var(--mut);margin-top:10px}
+/* plans */
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+.plan{position:relative;text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;color:var(--ink);font:inherit;min-height:44px}
+.plan:hover{border-color:var(--line2)}
+.plan.on{border-color:var(--gold);background:rgba(212,175,55,.09);box-shadow:0 0 0 3px rgba(212,175,55,.12)}
+.plan .off{position:absolute;top:-10px;right:10px;background:var(--red);color:#fff;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
+.plan h4{margin:0;font-size:15px;font-weight:600}
+.plan .pr{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+.plan .pr b{font-family:"Cormorant Garamond",serif;font-size:32px;color:var(--gold2);white-space:nowrap}
+.plan .pr s{color:var(--mut);font-size:14px;white-space:nowrap}
+.plan p{margin:4px 0 0;font-size:13px;color:var(--mut)}
+/* pay */
+.pay{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
+@media(min-width:640px){.pay{grid-template-columns:220px minmax(0,1fr)}}
+.qr{background:#fff;border-radius:14px;padding:10px;width:220px;max-width:100%;margin:0 auto}
+.qr svg,.qr img{display:block;width:100%;height:auto}
+.amt{font-family:"Cormorant Garamond",serif;font-size:44px;color:var(--gold2);line-height:1}
+.upi{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 14px;font-size:15px}
+.upi code{background:var(--panel2);border:1px solid var(--line);padding:6px 10px;border-radius:8px;overflow-wrap:anywhere}
+.shot{width:100%;max-height:260px;object-fit:contain;border-radius:12px;border:1px solid var(--line);margin-top:8px;background:#000}
+.done{text-align:center;padding:10px 0}.done .amt{font-size:34px}
+.status{border-radius:12px;padding:12px 14px;font-size:14px;border:1px solid var(--line);background:var(--panel2);margin:12px 0}
+.status.on{border-color:rgba(127,194,155,.5)}
+/* admin */
+.admin{border-color:rgba(224,87,58,.45)}
+.prose h1,.prose h2,.prose h3{font-family:"Cormorant Garamond",serif;color:var(--gold2);margin:22px 0 8px}
+.prose h2{font-size:26px;border-bottom:1px solid var(--line);padding-bottom:5px}.prose h3{font-size:21px}
+.prose p,.prose li{color:#e8e3d9;line-height:1.7}.prose strong{color:var(--gold2)}
+.prose blockquote{border-left:3px solid var(--gold);margin:12px 0;padding:6px 14px;background:rgba(212,175,55,.06)}
+.hist{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto}
+.hist div{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;font-size:14px}
+.hist div button{flex:none}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:18px;padding:22px;width:min(420px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1b2236;border:1px solid var(--line2);padding:11px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:92vw;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.show{opacity:1}
+footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);font-size:13px}
+.spin{width:18px;height:18px;border:2px solid rgba(20,17,10,.3);border-top-color:#14110a;border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+#printArea{display:none}
+@media print{
+  body{background:#fff;color:#111}
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block;color:#111;font:12pt/1.55 Georgia,serif;padding:0 8mm}
+  #printArea h1,#printArea h2,#printArea h3{color:#6b4e00}
+  #printArea svg{width:300px;height:300px}
+  #printArea table{width:100%;border-collapse:collapse;font-size:10pt;margin-bottom:10px}#printArea th,#printArea td{color:#111;border-bottom:1px solid #ccc;padding:4px}
+  #printArea .kv div{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:3px 0}#printArea .kwrap{display:grid;grid-template-columns:320px 1fr;gap:16px}
+  #printArea h2{page-break-after:avoid}#printArea h3{page-break-after:avoid}
+  #printArea svg *{stroke:#6b4e00}#printArea svg text{fill:#111;stroke:none}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <div class="brand"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="8" y="8" width="48" height="48"/><path d="M8 8l48 48M56 8L8 56M32 8l24 24-24 24L8 32z"/></svg><span id="bizName">Jyotish <b>AI</b></span></div>
+  <div class="hours"><span class="dot" id="hDot"></span><span id="hText">—</span></div>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Your free Janam Kundli, then ask the Acharya</h1>
+    <p>Enter your birth details to see your sidereal (Lahiri) chart, Nakshatra, Panchang and running Dasha, all free. Then pick a plan to ask your questions. Your personal report comes on WhatsApp.</p>
+  </section>
+
+  <div class="grid">
+    <!-- LEFT: birth form -->
+    <div class="sticky">
+      <section class="card" id="formCard">
+        <div class="step">Step 1 · Birth details</div>
+        <h2>Janam details</h2>
+        <p class="sub">Accurate time and place give an accurate Lagna.</p>
+        <form id="birthForm" novalidate>
+          <div class="f"><label for="nm">Full name *</label><input id="nm" autocomplete="name" placeholder="e.g. Aarav Sharma" required></div>
+          <div class="row r2">
+            <div class="f"><label for="gd">Gender *</label><select id="gd"><option>Male</option><option>Female</option><option>Other</option></select></div>
+            <div class="f"><label for="dob">Date of birth *</label><input id="dob" type="date" required min="1900-01-01" max="2100-12-31"></div>
+          </div>
+          <div class="f">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px"><label for="tob" style="margin:0">Time of birth *</label><label class="chk"><input type="checkbox" id="tobU"> Time not known</label></div>
+            <input id="tob" type="time" value="12:00" required>
+          </div>
+          <div class="f">
+            <label for="pob">Place of birth *</label>
+            <input id="pob" autocomplete="off" placeholder="Start typing a city, e.g. Varanasi" required aria-autocomplete="list">
+            <div class="sugg" id="sugg" role="listbox"></div>
+            <div class="coord" id="coordLine"><span>Coordinates fill in automatically when you pick a place.</span></div>
+            <div class="btns" style="margin-top:8px"><button type="button" class="linkb" id="geoBtn">Born where you are now? Use current location</button><button type="button" class="linkb" id="manBtn">Enter coordinates manually</button></div>
+            <div id="manual" class="hide" style="margin-top:10px">
+              <div class="row"><div class="f"><label for="mLat">Latitude (N +)</label><input id="mLat" inputmode="decimal" placeholder="25.32"></div><div class="f"><label for="mLon">Longitude (E +)</label><input id="mLon" inputmode="decimal" placeholder="82.97"></div></div>
+              <div class="f"><label for="mOff">Time zone (UTC offset, hours)</label><input id="mOff" inputmode="decimal" placeholder="5.5" value="5.5"></div>
+              <button type="button" class="btn sm" id="manApply">Use these coordinates</button>
+            </div>
+          </div>
+          <button class="btn pri full" type="submit" id="castBtn">Generate my free Kundli</button>
+        </form>
+      </section>
+
+      <!-- ADMIN STUDIO -->
+      <section class="card admin hide" id="adminCard">
+        <div class="step" style="color:#f19a86">Admin · visible only on your device</div>
+        <h2>Report studio</h2>
+        <p class="sub">Cast the client's chart on the left, add their questions here, then generate the AI report.</p>
+        <details style="margin-bottom:14px"><summary style="cursor:pointer;color:var(--gold2);font-size:14px">Paste an order from WhatsApp (auto-fills everything)</summary>
+          <textarea id="orderPaste" rows="5" style="margin-top:10px" placeholder="Paste the full WhatsApp order message here"></textarea>
+          <button class="btn sm" type="button" id="parseBtn" style="margin-top:8px">Fill from order</button>
+        </details>
+        <div class="row r2">
+          <div class="f"><label for="aPhone">Client WhatsApp</label><input id="aPhone" inputmode="tel" placeholder="9198xxxxxxxx"></div>
+          <div class="f"><label for="aEmail">Client email</label><input id="aEmail" type="email" placeholder="client@email.com"></div>
+        </div>
+        <div class="f"><label for="aQs">Client questions (one per line, optional)</label><textarea id="aQs" rows="4" placeholder="When will my career stabilise?&#10;Is 2027 good for marriage?"></textarea></div>
+        <div class="f"><label for="aNotes">Your private notes for the AI (optional)</label><textarea id="aNotes" rows="2" placeholder="e.g. Keep remedies simple; client prefers Hindi terms"></textarea></div>
+        <div class="btns"><button class="btn pri" type="button" id="genBtn">Generate report</button><button class="btn sm" type="button" id="setBtn">AI settings</button><button class="btn sm" type="button" id="lockBtn">Lock admin</button></div>
+        <div class="sec"><h3>Saved reports</h3><div class="hist" id="hist"><p class="note">Reports you generate are kept on this device.</p></div></div>
+      </section>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <section class="card" id="emptyCard">
+        <div class="step">Step 2 · Your chart</div>
+        <h2>Your patrika appears here</h2>
+        <svg class="kundli" viewBox="0 0 400 400" style="max-width:300px;margin-top:16px;opacity:.5" fill="none" stroke="#d4af37" stroke-width="1.4" aria-hidden="true"><rect x="2" y="2" width="396" height="396"/><path d="M2 2L398 398M398 2L2 398M200 2L398 200L200 398L2 200Z"/></svg>
+        <p class="note" style="text-align:center">Lagna · Rashi · Nakshatra · Panchang · Vimshottari Dasha · Shani transit</p>
+      </section>
+
+      <section class="card hide" id="chartCard">
+        <div class="step">Step 2 · Your free chart</div>
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start">
+          <div><h2 id="cName">—</h2><p class="sub" id="cMeta" style="margin-bottom:0"></p></div>
+          <button class="btn sm" type="button" id="copyChart">Copy summary</button>
+        </div>
+        <div class="pillars" id="pillars"></div>
+        <div class="kwrap">
+          <div>
+            <div class="tabs" role="tablist"><button type="button" class="on" data-st="north">North Indian</button><button type="button" data-st="south">South Indian</button></div>
+            <div id="kundli"></div>
+          </div>
+          <div>
+            <h3>Panchang at birth</h3>
+            <div class="kv" id="panchang"></div>
+          </div>
+        </div>
+        <div class="sec"><h3>Graha positions</h3><div class="scroll"><table id="ptab"></table></div></div>
+        <div class="sec"><h3>Vimshottari Mahadasha</h3><div id="dashaNow" class="status"></div><div class="dasha" id="dasha"></div></div>
+        <div class="sec"><h3>Current Gochara (transits)</h3><div class="scroll"><table id="ttab"></table></div><div class="kv" id="yogas" style="margin-top:8px"></div></div>
+        <p class="note" id="tobNote"></p>
+      </section>
+
+      <section class="card hide" id="askCard">
+        <div class="step">Step 3 · Ask the Acharya</div>
+        <h2>Choose a consultation plan</h2>
+        <p class="sub">Each answer is prepared personally from your chart and sent on WhatsApp during <span class="hrsLbl"></span>.</p>
+        <div class="plans" id="plans"></div>
+        <div id="qBox"></div>
+        <div class="row r2">
+          <div class="f"><label for="cEmail">Your email *</label><input id="cEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
+          <div class="f"><label for="cPhone">Your WhatsApp number *</label><input id="cPhone" inputmode="tel" autocomplete="tel" placeholder="98xxxxxxxx"></div>
+        </div>
+        <button class="btn pri full" type="button" id="proceed">Proceed to pay</button>
+      </section>
+
+      <section class="card hide" id="payCard">
+        <div class="step">Step 4 · Pay by UPI</div>
+        <h2>Complete your payment</h2>
+        <div class="pay" style="margin-top:14px">
+          <div><div class="qr" id="qr"></div><p class="note" style="text-align:center">Scan with any UPI app</p></div>
+          <div>
+            <div class="amt" id="payAmt">₹0</div>
+            <p class="note" id="payPlan" style="margin-top:4px"></p>
+            <div class="upi">UPI ID <code id="upiId"></code><button class="btn sm" type="button" id="copyUpi">Copy</button></div>
+            <a class="btn pri full" id="upiLink" href="#">Pay in UPI app</a>
+            <p class="note">Order ID <b id="ordId" style="color:var(--gold2)"></b>. It is added to the payment note.</p>
+          </div>
+        </div>
+        <div class="sec">
+          <h3>After paying</h3>
+          <div class="row r2">
+            <div class="f"><label for="utr">UPI transaction ID / UTR *</label><input id="utr" inputmode="numeric" placeholder="12-digit UTR"></div>
+            <div class="f"><label for="pEmail">Email for the report *</label><input id="pEmail" type="email" placeholder="you@email.com"></div>
+          </div>
+          <div class="f"><label for="shot">Payment screenshot *</label><input id="shot" type="file" accept="image/*"><img id="shotPrev" class="shot hide" alt="Payment screenshot preview"></div>
+          <div class="btns"><button class="btn wa" type="button" id="sendWa">Send details on WhatsApp</button><button class="btn sm" type="button" id="backPlans">Change plan</button></div>
+        </div>
+      </section>
+
+      <section class="card hide" id="doneCard">
+        <div class="step">Step 5 · Sent</div>
+        <div class="done">
+          <h2>Dhanyavaad, <span id="dName"></span></h2>
+          <p class="sub">Order <b id="dOrd" style="color:var(--gold2)"></b> · <span id="dPlan"></span></p>
+        </div>
+        <div class="status" id="dHours"></div>
+        <p class="note">WhatsApp opened with your birth details, questions and payment reference filled in. <b style="color:var(--gold2)">Attach your payment screenshot in that chat</b> before you tap send.</p>
+        <div class="btns" style="margin-top:12px"><button class="btn sm hide" type="button" id="shareShot">Share screenshot</button><a class="btn wa" id="waAgain" href="#" target="_blank" rel="noopener">Open WhatsApp</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
+      </section>
+
+      <section class="card hide" id="reportCard">
+        <div class="step" style="color:#f19a86">Admin · generated report</div>
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 id="rTitle">Report</h2>
+          <div class="btns"><button class="btn sm" type="button" id="rCopy">Copy</button><a class="btn sm wa" id="rWa" href="#" target="_blank" rel="noopener">WhatsApp client</a><a class="btn sm" id="rMail" href="#">Email</a><button class="btn sm" type="button" id="rPrint">Print / PDF</button></div></div>
+        <div class="prose" id="rBody"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer><div class="wrap">
+  <p>Charts are computed in your browser with the Lahiri ayanamsa, whole-sign houses and mean Rahu. Jyotish guidance is for reflection and spiritual insight. It is not a substitute for medical, legal or financial advice.</p>
+  <p><span id="bizFoot"></span> · Replies <span class="hrsLbl"></span></p>
+</div></footer>
+
+<dialog id="pinDlg"><form method="dialog" id="pinForm">
+  <h3>Admin access</h3><p class="sub">Enter your PIN to open the report studio on this device.</p>
+  <div class="f"><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN"></div>
+  <div class="btns"><button class="btn pri" value="ok" id="pinOk">Unlock</button><button class="btn sm" value="cancel" formnovalidate>Cancel</button></div>
+</form></dialog>
+
+<dialog id="setDlg"><form method="dialog">
+  <h3>AI settings</h3><p class="sub">Your key is stored only in this browser. It is never written into the page, so visitors can't see it.</p>
+  <div class="f"><label for="sProv">Provider</label><select id="sProv"><option value="gemini">Google Gemini (AI Studio key)</option><option value="claude">Anthropic Claude (Console key)</option></select></div>
+  <div class="f"><label for="sKey">API key</label><input id="sKey" type="password" autocomplete="off" placeholder="Paste key"></div>
+  <div class="f"><label for="sModel">Model</label><input id="sModel" placeholder="gemini-flash-latest"></div>
+  <p class="note" id="sHelp"></p>
+  <div class="btns"><button class="btn pri" value="save" id="sSave">Save</button><button class="btn sm" value="cancel" formnovalidate>Close</button></div>
+</form></dialog>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+/* ================================================================
+   CONFIG — edit these before you publish
+   ================================================================ */
+const CONFIG = {
+  BUSINESS_NAME: 'Jyotish AI',
+  UPI_ID: 'nehatomar210@kotak',          // your UPI VPA (a business/merchant UPI ID works best)
+  PAYEE_NAME: 'Neha Tomar',               // name shown in the UPI app
+  WHATSAPP: '919643330507',               // your WhatsApp number with country code, digits only
+  ADMIN_PIN_HASH: '__ADMIN_PIN_HASH__',   // filled in at deploy from your ADMIN_PIN secret — do not put the PIN here
+  HOURS: { open: 10, close: 18, label: '10 AM – 6 PM IST' },
+  PLANS: [
+    { id: 'q1', title: '1 question', questions: 1, mrp: 110, price: 11, note: 'One focused answer' },
+    { id: 'q2', title: '2 questions', questions: 2, mrp: 200, price: 21, note: 'Two detailed answers' },
+    { id: 'q3', title: '3 questions', questions: 3, mrp: 500, price: 51, note: 'Three detailed answers' }
+  ]
+};
+</script>
+<script>
+/* ===== Jyotish engine: sidereal (Lahiri) positions, lagna, nakshatra, panchang, Vimshottari ===== */
+const AS = (() => {
+  const R = Math.PI / 180, n360 = x => ((x % 360) + 360) % 360;
+  const sin = x => Math.sin(x * R), cos = x => Math.cos(x * R), atan2 = (y, x) => n360(Math.atan2(y, x) / R);
+  const SIGNS = ['Mesha (Aries)','Vrishabha (Taurus)','Mithuna (Gemini)','Karka (Cancer)','Simha (Leo)','Kanya (Virgo)','Tula (Libra)','Vrischika (Scorpio)','Dhanu (Sagittarius)','Makara (Capricorn)','Kumbha (Aquarius)','Meena (Pisces)'];
+  const SHORT = ['Ar','Ta','Ge','Cn','Le','Vi','Li','Sc','Sg','Cp','Aq','Pi'];
+  const NAK = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati'];
+  const DASHA = [['Ketu',7],['Venus',20],['Sun',6],['Moon',10],['Mars',7],['Rahu',18],['Jupiter',16],['Saturn',19],['Mercury',17]];
+  const LORD = ['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
+  const TITHI = ['Pratipada','Dwitiya','Tritiya','Chaturthi','Panchami','Shashthi','Saptami','Ashtami','Navami','Dashami','Ekadashi','Dwadashi','Trayodashi','Chaturdashi'];
+  const YOGA = ['Vishkambha','Priti','Ayushman','Saubhagya','Shobhana','Atiganda','Sukarma','Dhriti','Shula','Ganda','Vriddhi','Dhruva','Vyaghata','Harshana','Vajra','Siddhi','Vyatipata','Variyana','Parigha','Shiva','Siddha','Sadhya','Shubha','Shukla','Brahma','Indra','Vaidhriti'];
+  const VARA = ['Ravivara (Sunday)','Somavara (Monday)','Mangalavara (Tuesday)','Budhavara (Wednesday)','Guruvara (Thursday)','Shukravara (Friday)','Shanivara (Saturday)'];
+  const EXALT = {Sun:0,Moon:1,Mars:9,Mercury:5,Jupiter:3,Venus:11,Saturn:6,Rahu:1,Ketu:7};
+  const OWN = {Sun:[4],Moon:[3],Mars:[0,7],Mercury:[2,5],Jupiter:[8,11],Venus:[1,6],Saturn:[9,10]};
+  const ABBR = {Sun:'Su',Moon:'Mo',Mars:'Ma',Mercury:'Me',Jupiter:'Ju',Venus:'Ve',Saturn:'Sa',Rahu:'Ra',Ketu:'Ke'};
+
+  const jd = ms => ms / 86400000 + 2440587.5;
+  const ayanamsa = J => { const T = (J - 2451545) / 36525; return 23.85306 + 1.39697 * T + 0.0003 * T * T; };
+
+  const EL = {
+    Sun:     d => [0, 0, 282.9404 + 4.70935e-5 * d, 1, 0.016709 - 1.151e-9 * d, 356.0470 + 0.9856002585 * d],
+    Moon:    d => [125.1228 - 0.0529538083 * d, 5.1454, 318.0634 + 0.1643573223 * d, 60.2666, 0.0549, 115.3654 + 13.0649929509 * d],
+    Mercury: d => [48.3313 + 3.24587e-5 * d, 7.0047 + 5e-8 * d, 29.1241 + 1.01444e-5 * d, 0.387098, 0.205635 + 5.59e-10 * d, 168.6562 + 4.0923344368 * d],
+    Venus:   d => [76.6799 + 2.4659e-5 * d, 3.3946 + 2.75e-8 * d, 54.891 + 1.38374e-5 * d, 0.72333, 0.006773 - 1.302e-9 * d, 48.0052 + 1.6021302244 * d],
+    Mars:    d => [49.5574 + 2.11081e-5 * d, 1.8497 - 1.78e-8 * d, 286.5016 + 2.92961e-5 * d, 1.523688, 0.093405 + 2.516e-9 * d, 18.6021 + 0.5240207766 * d],
+    Jupiter: d => [100.4542 + 2.76854e-5 * d, 1.303 - 1.557e-7 * d, 273.8777 + 1.64505e-5 * d, 5.20256, 0.048498 + 4.469e-9 * d, 19.895 + 0.0830853001 * d],
+    Saturn:  d => [113.6634 + 2.3898e-5 * d, 2.4886 - 1.081e-7 * d, 339.3939 + 2.97661e-5 * d, 9.55475, 0.055546 - 9.499e-9 * d, 316.967 + 0.0334442282 * d],
+  };
+  function orbit([N, i, w, a, e, M]) {
+    M = n360(M);
+    let E = M + (e / R) * sin(M) * (1 + e * cos(M));
+    for (let k = 0; k < 8; k++) E = E - (E - (e / R) * sin(E) - M) / (1 - e * cos(E));
+    const xv = a * (cos(E) - e), yv = a * Math.sqrt(1 - e * e) * sin(E);
+    const v = atan2(yv, xv), r = Math.hypot(xv, yv);
+    const x = r * (cos(N) * cos(v + w) - sin(N) * sin(v + w) * cos(i));
+    const y = r * (sin(N) * cos(v + w) + cos(N) * sin(v + w) * cos(i));
+    const z = r * sin(v + w) * sin(i);
+    return { x, y, z, r, lon: atan2(y, x), lat: Math.atan2(z, Math.hypot(x, y)) / R };
+  }
+  function tropical(d) {
+    const s = EL.Sun(d), sun = orbit(s), out = { Sun: sun.lon };
+    const m = EL.Moon(d), mo = orbit(m);
+    const Ms = n360(s[5]), Mm = n360(m[5]), Ls = n360(s[2] + Ms), Lm = n360(m[0] + m[2] + Mm), D = Lm - Ls, F = Lm - m[0];
+    out.Moon = n360(mo.lon - 1.274 * sin(Mm - 2 * D) + 0.658 * sin(2 * D) - 0.186 * sin(Ms) - 0.059 * sin(2 * Mm - 2 * D)
+      - 0.057 * sin(Mm - 2 * D + Ms) + 0.053 * sin(Mm + 2 * D) + 0.046 * sin(2 * D - Ms) + 0.041 * sin(Mm - Ms)
+      - 0.035 * sin(D) - 0.031 * sin(Mm + Ms) - 0.015 * sin(2 * F - 2 * D) + 0.011 * sin(Mm - 4 * D));
+    const Mj = n360(EL.Jupiter(d)[5]), Msa = n360(EL.Saturn(d)[5]);
+    for (const p of ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn']) {
+      const h = orbit(EL[p](d));
+      let lon = h.lon;
+      if (p === 'Jupiter') lon += -0.332 * sin(2 * Mj - 5 * Msa - 67.6) - 0.056 * sin(2 * Mj - 2 * Msa + 21) + 0.042 * sin(3 * Mj - 5 * Msa + 21)
+        - 0.036 * sin(Mj - 2 * Msa) + 0.022 * cos(Mj - Msa) + 0.023 * sin(2 * Mj - 3 * Msa + 52) - 0.016 * sin(Mj - 5 * Msa - 69);
+      if (p === 'Saturn') lon += 0.812 * sin(2 * Mj - 5 * Msa - 67.6) - 0.229 * cos(2 * Mj - 4 * Msa - 2) + 0.094 * sin(Mj - 2 * Msa - 8)
+        + 0.018 * sin(2 * Mj - 6 * Msa - 69) - 0.014 * cos(2 * Mj - 3 * Msa + 32);
+      const rc = h.r * cos(h.lat);
+      const gx = rc * cos(lon) + sun.r * cos(sun.lon), gy = rc * sin(lon) + sun.r * sin(sun.lon);
+      out[p] = atan2(gy, gx);
+    }
+    out.Rahu = n360(m[0]);
+    out.Ketu = n360(m[0] + 180);
+    return out;
+  }
+  function sidereal(ms) {
+    const J = jd(ms), d = J - 2451543.5, ay = ayanamsa(J);
+    const t = tropical(d), t2 = tropical(d + 1), res = {};
+    for (const p in t) {
+      const lon = n360(t[p] - ay);
+      let mv = t2[p] - t[p]; if (mv > 180) mv -= 360; if (mv < -180) mv += 360;
+      res[p] = { lon, retro: p === 'Rahu' || p === 'Ketu' ? true : mv < 0 };
+    }
+    return { pos: res, ay, J };
+  }
+  function lagna(ms, lat, lonE) {
+    const J = jd(ms), d = J - 2451545, eps = 23.4393 - 3.563e-7 * (J - 2451543.5);
+    const lst = n360(280.46061837 + 360.98564736629 * d + lonE);
+    const asc = atan2(cos(lst), -(sin(lst) * cos(eps) + Math.tan(lat * R) * sin(eps)));
+    return n360(asc - ayanamsa(J));
+  }
+  /* offset in minutes of IANA zone at a given local wall time */
+  function tzOffset(tz, y, mo, dd, h, mi) {
+    let guess = Date.UTC(y, mo - 1, dd, h, mi);
+    const f = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' });
+    let off = 0;
+    for (let k = 0; k < 3; k++) {
+      const p = Object.fromEntries(f.formatToParts(new Date(guess - off * 60000)).map(x => [x.type, x.value]));
+      const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute);
+      off = Math.round((asUTC - (guess - off * 60000)) / 60000);
+    }
+    return off;
+  }
+  const signOf = l => Math.floor(l / 30);
+  const degStr = l => { const x = l % 30, dg = Math.floor(x), mn = Math.floor((x - dg) * 60); return `${dg}°${String(mn).padStart(2, '0')}′`; };
+  const nakOf = l => { const n = Math.floor(l / (360 / 27)); return { i: n, name: NAK[n], pada: Math.floor((l % (360 / 27)) / (360 / 108)) + 1, lord: DASHA[n % 9][0] }; };
+  function dignity(p, s) {
+    if (EXALT[p] === s) return 'Exalted';
+    if (EXALT[p] !== undefined && (EXALT[p] + 6) % 12 === s) return 'Debilitated';
+    if (OWN[p] && OWN[p].includes(s)) return 'Own sign';
+    return '';
+  }
+  const YEAR = 365.2425 * 86400000;
+  function vimshottari(moonLon, birthMs) {
+    const span = 360 / 27, n = Math.floor(moonLon / span), frac = (moonLon % span) / span;
+    let idx = n % 9, start = birthMs - frac * DASHA[idx][1] * YEAR;
+    const list = [];
+    for (let k = 0; k < 9 * 2; k++) {
+      const [lord, yrs] = DASHA[(idx + k) % 9], end = start + yrs * YEAR, subs = [];
+      let s2 = start;
+      for (let j = 0; j < 9; j++) {
+        const [sl, sy] = DASHA[(idx + k + j) % 9], e2 = s2 + yrs * sy / 120 * YEAR;
+        subs.push({ lord: sl, start: s2, end: e2 }); s2 = e2;
+      }
+      list.push({ lord, start, end, subs }); start = end;
+      if (start > birthMs + 125 * YEAR) break;
+    }
+    return { list, balanceYears: (1 - frac) * DASHA[idx][1] };
+  }
+  function cast({ y, mo, d, h, mi, lat, lon, tz, offsetMin }) {
+    const off = offsetMin != null ? offsetMin : tzOffset(tz, y, mo, d, h, mi);
+    const ms = Date.UTC(y, mo - 1, d, h, mi) - off * 60000;
+    const { pos, ay } = sidereal(ms);
+    const asc = lagna(ms, lat, lon), ls = signOf(asc);
+    const planets = Object.keys(pos).map(p => {
+      const l = pos[p].lon, s = signOf(l);
+      return { name: p, abbr: ABBR[p], lon: l, sign: s, deg: degStr(l), nak: nakOf(l), house: (s - ls + 12) % 12 + 1, retro: pos[p].retro && p !== 'Sun' && p !== 'Moon', dignity: dignity(p, s) };
+    });
+    const P = Object.fromEntries(planets.map(p => [p.name, p]));
+    const elong = ((P.Moon.lon - P.Sun.lon) % 360 + 360) % 360, tn = Math.floor(elong / 12);
+    const tithi = (tn < 15 ? 'Shukla ' : 'Krishna ') + (tn % 15 === 14 ? (tn < 15 ? 'Purnima' : 'Amavasya') : TITHI[tn % 15]);
+    const yoga = YOGA[Math.floor((((P.Sun.lon + P.Moon.lon) % 360) / (360 / 27)))];
+    const vara = VARA[new Date(Date.UTC(y, mo - 1, d)).getUTCDay()];
+    const vim = vimshottari(P.Moon.lon, ms), now = Date.now();
+    const md = vim.list.find(x => x.start <= now && now < x.end), ad = md && md.subs.find(x => x.start <= now && now < x.end);
+    const mars = P.Mars.house, manglik = [1, 2, 4, 7, 8, 12].includes(mars);
+    // current transits relative to Moon sign
+    const tr = sidereal(now).pos, fromMoon = l => (signOf(l) - P.Moon.sign + 12) % 12 + 1;
+    const satH = fromMoon(tr.Saturn.lon);
+    const transits = ['Saturn', 'Jupiter', 'Rahu', 'Ketu'].map(p => ({ name: p, sign: signOf(tr[p].lon), deg: degStr(tr[p].lon), fromMoon: fromMoon(tr[p].lon), fromLagna: (signOf(tr[p].lon) - ls + 12) % 12 + 1, retro: tr[p].retro }));
+    return {
+      utcMs: ms, offsetMin: off, ayanamsa: ay, asc: { lon: asc, sign: ls, deg: degStr(asc), nak: nakOf(asc) }, planets, P,
+      panchang: { tithi, yoga, vara, nakshatra: nakOf(P.Moon.lon).name },
+      vim, md, ad, manglik: { is: manglik, house: mars },
+      sadeSati: satH === 12 ? 'Rising phase (Saturn 12th from Moon)' : satH === 1 ? 'Peak phase (Saturn over Moon sign)' : satH === 2 ? 'Setting phase (Saturn 2nd from Moon)' : satH === 4 || satH === 8 ? `Dhaiya / Kantaka (Saturn ${satH}th from Moon)` : 'Not active',
+      transits, lagnaLord: LORD[ls], moonLord: LORD[P.Moon.sign]
+    };
+  }
+  return { cast, SIGNS, SHORT, NAK, LORD, signOf, degStr, sidereal, lagna, tzOffset, YEAR };
+})();
+
+
+</script>
+<script>
+{
+/* ---------------- city data (offline) ---------------- */
+const IN = `Delhi|Delhi|28.61|77.21;New Delhi|Delhi|28.61|77.21;Mumbai|Maharashtra|19.08|72.88;Kolkata|West Bengal|22.57|88.36;Chennai|Tamil Nadu|13.08|80.27;Bengaluru|Karnataka|12.97|77.59;Hyderabad|Telangana|17.39|78.49;Ahmedabad|Gujarat|23.02|72.57;Pune|Maharashtra|18.52|73.86;Surat|Gujarat|21.17|72.83;Jaipur|Rajasthan|26.91|75.79;Lucknow|Uttar Pradesh|26.85|80.95;Kanpur|Uttar Pradesh|26.45|80.33;Nagpur|Maharashtra|21.15|79.09;Indore|Madhya Pradesh|22.72|75.86;Thane|Maharashtra|19.22|72.98;Bhopal|Madhya Pradesh|23.26|77.41;Visakhapatnam|Andhra Pradesh|17.69|83.22;Patna|Bihar|25.59|85.14;Vadodara|Gujarat|22.31|73.18;Ghaziabad|Uttar Pradesh|28.67|77.45;Ludhiana|Punjab|30.90|75.86;Agra|Uttar Pradesh|27.18|78.01;Nashik|Maharashtra|20.00|73.79;Faridabad|Haryana|28.41|77.32;Meerut|Uttar Pradesh|28.98|77.71;Rajkot|Gujarat|22.30|70.80;Varanasi|Uttar Pradesh|25.32|82.97;Srinagar|Jammu & Kashmir|34.08|74.80;Aurangabad|Maharashtra|19.88|75.34;Dhanbad|Jharkhand|23.80|86.43;Amritsar|Punjab|31.63|74.87;Prayagraj (Allahabad)|Uttar Pradesh|25.44|81.85;Ranchi|Jharkhand|23.34|85.31;Howrah|West Bengal|22.59|88.31;Coimbatore|Tamil Nadu|11.02|76.96;Jabalpur|Madhya Pradesh|23.18|79.99;Gwalior|Madhya Pradesh|26.22|78.18;Vijayawada|Andhra Pradesh|16.51|80.65;Jodhpur|Rajasthan|26.24|73.02;Madurai|Tamil Nadu|9.93|78.12;Raipur|Chhattisgarh|21.25|81.63;Kota|Rajasthan|25.21|75.86;Guwahati|Assam|26.14|91.74;Chandigarh|Chandigarh|30.73|76.78;Solapur|Maharashtra|17.66|75.91;Bareilly|Uttar Pradesh|28.37|79.43;Moradabad|Uttar Pradesh|28.84|78.77;Mysuru|Karnataka|12.30|76.64;Gurugram|Haryana|28.46|77.03;Aligarh|Uttar Pradesh|27.88|78.08;Jalandhar|Punjab|31.33|75.58;Tiruchirappalli|Tamil Nadu|10.79|78.70;Bhubaneswar|Odisha|20.30|85.82;Salem|Tamil Nadu|11.66|78.15;Thiruvananthapuram|Kerala|8.52|76.94;Kochi|Kerala|9.93|76.27;Kozhikode|Kerala|11.26|75.78;Thrissur|Kerala|10.53|76.21;Warangal|Telangana|17.97|79.59;Guntur|Andhra Pradesh|16.31|80.44;Saharanpur|Uttar Pradesh|29.96|77.55;Gorakhpur|Uttar Pradesh|26.76|83.37;Bikaner|Rajasthan|28.02|73.31;Amravati|Maharashtra|20.93|77.75;Noida|Uttar Pradesh|28.54|77.39;Jamshedpur|Jharkhand|22.80|86.20;Bhilai|Chhattisgarh|21.21|81.38;Cuttack|Odisha|20.46|85.88;Dehradun|Uttarakhand|30.32|78.03;Haridwar|Uttarakhand|29.95|78.16;Rishikesh|Uttarakhand|30.09|78.27;Udaipur|Rajasthan|24.59|73.71;Ajmer|Rajasthan|26.45|74.64;Ujjain|Madhya Pradesh|23.18|75.78;Mathura|Uttar Pradesh|27.49|77.67;Vrindavan|Uttar Pradesh|27.58|77.70;Ayodhya|Uttar Pradesh|26.80|82.20;Puri|Odisha|19.81|85.83;Shimla|Himachal Pradesh|31.10|77.17;Jammu|Jammu & Kashmir|32.73|74.86;Panaji|Goa|15.49|73.83;Margao|Goa|15.28|73.96;Mangaluru|Karnataka|12.91|74.86;Hubballi|Karnataka|15.36|75.12;Belagavi|Karnataka|15.85|74.50;Tirupati|Andhra Pradesh|13.63|79.42;Nellore|Andhra Pradesh|14.44|79.99;Kurnool|Andhra Pradesh|15.83|78.04;Rajahmundry|Andhra Pradesh|17.00|81.80;Kakinada|Andhra Pradesh|16.99|82.25;Puducherry|Puducherry|11.94|79.81;Vellore|Tamil Nadu|12.92|79.13;Tirunelveli|Tamil Nadu|8.71|77.76;Erode|Tamil Nadu|11.34|77.72;Thanjavur|Tamil Nadu|10.79|79.14;Kanchipuram|Tamil Nadu|12.83|79.70;Siliguri|West Bengal|26.73|88.40;Durgapur|West Bengal|23.52|87.31;Asansol|West Bengal|23.68|86.98;Gaya|Bihar|24.79|85.00;Bhagalpur|Bihar|25.24|86.97;Muzaffarpur|Bihar|26.12|85.39;Darbhanga|Bihar|26.15|85.90;Imphal|Manipur|24.82|93.94;Shillong|Meghalaya|25.58|91.89;Agartala|Tripura|23.83|91.29;Aizawl|Mizoram|23.73|92.72;Kohima|Nagaland|25.67|94.11;Itanagar|Arunachal Pradesh|27.08|93.61;Gangtok|Sikkim|27.33|88.61;Dibrugarh|Assam|27.47|94.91;Jorhat|Assam|26.75|94.20;Silchar|Assam|24.83|92.80;Rourkela|Odisha|22.26|84.85;Sambalpur|Odisha|21.47|83.97;Bilaspur|Chhattisgarh|22.08|82.15;Jhansi|Uttar Pradesh|25.45|78.57;Kolhapur|Maharashtra|16.70|74.24;Sangli|Maharashtra|16.85|74.58;Nanded|Maharashtra|19.15|77.31;Akola|Maharashtra|20.71|77.00;Jalgaon|Maharashtra|21.01|75.56;Ahmednagar|Maharashtra|19.09|74.74;Navi Mumbai|Maharashtra|19.03|73.03;Bhavnagar|Gujarat|21.76|72.15;Jamnagar|Gujarat|22.47|70.06;Junagadh|Gujarat|21.52|70.46;Gandhinagar|Gujarat|23.22|72.65;Anand|Gujarat|22.56|72.95;Bhuj|Gujarat|23.24|69.67;Dwarka|Gujarat|22.24|68.97;Patiala|Punjab|30.34|76.39;Bathinda|Punjab|30.21|74.95;Panipat|Haryana|29.39|76.97;Karnal|Haryana|29.69|76.99;Rohtak|Haryana|28.90|76.61;Hisar|Haryana|29.15|75.72;Ambala|Haryana|30.38|76.78;Kurukshetra|Haryana|29.97|76.88;Alwar|Rajasthan|27.55|76.60;Bharatpur|Rajasthan|27.22|77.49;Sikar|Rajasthan|27.61|75.14;Pushkar|Rajasthan|26.49|74.55;Firozabad|Uttar Pradesh|27.15|78.40;Rewa|Madhya Pradesh|24.53|81.30;Satna|Madhya Pradesh|24.60|80.83;Sagar|Madhya Pradesh|23.84|78.74;Ratlam|Madhya Pradesh|23.33|75.04;Haldwani|Uttarakhand|29.22|79.51;Nainital|Uttarakhand|29.38|79.46;Mirzapur|Uttar Pradesh|25.15|82.57;Azamgarh|Uttar Pradesh|26.07|83.18;Jaunpur|Uttar Pradesh|25.75|82.69;Dharamshala|Himachal Pradesh|32.22|76.32;Mandi|Himachal Pradesh|31.71|76.93;Leh|Ladakh|34.15|77.58;Port Blair|Andaman & Nicobar|11.62|92.73`;
+const WORLD = `Kathmandu|Nepal|27.72|85.32|Asia/Kathmandu;Dhaka|Bangladesh|23.81|90.41|Asia/Dhaka;Colombo|Sri Lanka|6.93|79.86|Asia/Colombo;Karachi|Pakistan|24.86|67.01|Asia/Karachi;Lahore|Pakistan|31.55|74.34|Asia/Karachi;Dubai|UAE|25.20|55.27|Asia/Dubai;Abu Dhabi|UAE|24.45|54.38|Asia/Dubai;Sharjah|UAE|25.35|55.42|Asia/Dubai;Doha|Qatar|25.29|51.53|Asia/Qatar;Muscat|Oman|23.59|58.41|Asia/Muscat;Riyadh|Saudi Arabia|24.71|46.68|Asia/Riyadh;Jeddah|Saudi Arabia|21.49|39.19|Asia/Riyadh;Kuwait City|Kuwait|29.38|47.99|Asia/Kuwait;Singapore|Singapore|1.35|103.82|Asia/Singapore;Kuala Lumpur|Malaysia|3.14|101.69|Asia/Kuala_Lumpur;Bangkok|Thailand|13.76|100.50|Asia/Bangkok;Hong Kong|China|22.32|114.17|Asia/Hong_Kong;Tokyo|Japan|35.68|139.69|Asia/Tokyo;Sydney|Australia|-33.87|151.21|Australia/Sydney;Melbourne|Australia|-37.81|144.96|Australia/Melbourne;Perth|Australia|-31.95|115.86|Australia/Perth;Auckland|New Zealand|-36.85|174.76|Pacific/Auckland;London|UK|51.51|-0.13|Europe/London;Leicester|UK|52.64|-1.13|Europe/London;Birmingham|UK|52.49|-1.89|Europe/London;Paris|France|48.86|2.35|Europe/Paris;Berlin|Germany|52.52|13.40|Europe/Berlin;Frankfurt|Germany|50.11|8.68|Europe/Berlin;Amsterdam|Netherlands|52.37|4.90|Europe/Amsterdam;New York|USA|40.71|-74.01|America/New_York;Edison, NJ|USA|40.52|-74.41|America/New_York;Washington DC|USA|38.91|-77.04|America/New_York;Boston|USA|42.36|-71.06|America/New_York;Atlanta|USA|33.75|-84.39|America/New_York;Chicago|USA|41.88|-87.63|America/Chicago;Houston|USA|29.76|-95.37|America/Chicago;Dallas|USA|32.78|-96.80|America/Chicago;San Francisco|USA|37.77|-122.42|America/Los_Angeles;San Jose|USA|37.34|-121.89|America/Los_Angeles;Los Angeles|USA|34.05|-118.24|America/Los_Angeles;Seattle|USA|47.61|-122.33|America/Los_Angeles;Toronto|Canada|43.65|-79.38|America/Toronto;Vancouver|Canada|49.28|-123.12|America/Vancouver;Johannesburg|South Africa|-26.20|28.05|Africa/Johannesburg;Durban|South Africa|-29.86|31.02|Africa/Johannesburg;Nairobi|Kenya|-1.29|36.82|Africa/Nairobi;Port Louis|Mauritius|-20.16|57.50|Indian/Mauritius`;
+const CITIES = IN.split(';').map(s => { const [n, r, la, lo] = s.split('|'); return { name: n, region: r + ', India', lat: +la, lon: +lo, tz: 'Asia/Kolkata' }; })
+  .concat(WORLD.split(';').map(s => { const [n, r, la, lo, tz] = s.split('|'); return { name: n, region: r, lat: +la, lon: +lo, tz }; }));
+
+/* ---------------- helpers ---------------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+let tt; const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3200); };
+const fmtDate = ms => new Date(ms).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const t12 = t => { const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+const offStr = m => { const s = m < 0 ? '-' : '+', a = Math.abs(m); return `UTC${s}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`; };
+const SN = AS.SIGNS.map(s => s.split(' ')[0]);
+const SE = AS.SIGNS.map(s => s.match(/\((.+)\)/)[1]);
+async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('Copied'); } catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); toast('Copied'); } catch (_) { toast('Copy not allowed here'); } a.remove(); } }
+const digits = s => String(s || '').replace(/\D/g, '');
+const waNum = s => { let d = digits(s); if (d.length === 10) d = '91' + d; return d; };
+
+/* ---------------- business hours ---------------- */
+function istNow() { const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', hourCycle: 'h23', hour: 'numeric', minute: 'numeric' }).formatToParts(new Date()).map(x => [x.type, x.value])); return +p.hour + +p.minute / 60; }
+function hoursState() { const h = istNow(), H = CONFIG.HOURS; return { open: h >= H.open && h < H.close, before: h < H.open }; }
+function paintHours() {
+  const s = hoursState();
+  $('hDot').classList.toggle('on', s.open);
+  $('hText').textContent = s.open ? `Open · replies till ${t12(CONFIG.HOURS.close + ':00')}` : `Closed · opens ${t12(CONFIG.HOURS.open + ':00')} IST`;
+}
+document.querySelectorAll('.hrsLbl').forEach(e => e.textContent = CONFIG.HOURS.label);
+$('bizName').innerHTML = esc(CONFIG.BUSINESS_NAME).replace(/(\S+)$/, '<b>$1</b>');
+$('bizFoot').textContent = CONFIG.BUSINESS_NAME;
+paintHours(); setInterval(paintHours, 60000);
+
+/* ---------------- place search ---------------- */
+let place = null, sugTimer, sugItems = [];
+function setPlace(p) {
+  place = p;
+  $('pob').value = p.label || `${p.name}, ${p.region}`;
+  const lat = `${Math.abs(p.lat).toFixed(2)}°${p.lat >= 0 ? 'N' : 'S'}`, lon = `${Math.abs(p.lon).toFixed(2)}°${p.lon >= 0 ? 'E' : 'W'}`;
+  $('coordLine').innerHTML = `<span>Lat <b>${lat}</b></span><span>Lon <b>${lon}</b></span><span>Zone <b>${esc(p.tz || offStr(p.offsetMin))}</b></span>`;
+  $('sugg').style.display = 'none';
+}
+function renderSugg() {
+  const box = $('sugg');
+  if (!sugItems.length) { box.style.display = 'none'; return; }
+  box.innerHTML = sugItems.map((c, i) => `<button type="button" role="option" data-i="${i}">${esc(c.name)} <small>${esc(c.region)}</small></button>`).join('');
+  box.style.display = 'block';
+}
+$('sugg').addEventListener('mousedown', e => e.preventDefault());
+$('sugg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setPlace(sugItems[+b.dataset.i]); });
+$('pob').addEventListener('input', () => {
+  place = null; $('coordLine').innerHTML = '<span>Pick a place from the list to fix its coordinates.</span>';
+  const q = $('pob').value.trim().toLowerCase().split(',')[0];
+  if (q.length < 2) { sugItems = []; renderSugg(); return; }
+  sugItems = CITIES.filter(c => c.name.toLowerCase().includes(q)).sort((a, b) => a.name.toLowerCase().indexOf(q) - b.name.toLowerCase().indexOf(q)).slice(0, 7);
+  renderSugg();
+  clearTimeout(sugTimer);
+  sugTimer = setTimeout(async () => {   // worldwide search when the page is hosted on the open web
+    try {
+      const ctl = new AbortController(); setTimeout(() => ctl.abort(), 5000);
+      const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&name=${encodeURIComponent(q)}`, { signal: ctl.signal });
+      const j = await r.json();
+      const extra = (j.results || []).map(x => ({ name: x.name, region: [x.admin2, x.admin1, x.country].filter(Boolean).join(', '), lat: x.latitude, lon: x.longitude, tz: x.timezone }))
+        .filter(x => x.tz && !sugItems.some(s => Math.abs(s.lat - x.lat) < .05 && Math.abs(s.lon - x.lon) < .05));
+      if ($('pob').value.trim().toLowerCase().split(',')[0] === q) { sugItems = sugItems.concat(extra).slice(0, 10); renderSugg(); }
+    } catch (e) { /* offline list only */ }
+  }, 350);
+});
+$('pob').addEventListener('blur', () => setTimeout(() => { $('sugg').style.display = 'none'; }, 150));
+$('pob').addEventListener('keydown', e => { if (e.key === 'Enter' && sugItems.length && $('sugg').style.display === 'block') { e.preventDefault(); setPlace(sugItems[0]); } });
+
+$('geoBtn').addEventListener('click', () => {
+  if (!navigator.geolocation) return toast('Location is not available in this browser');
+  toast('Fetching your location…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lon } = pos.coords;
+    let best = null, bd = 1e9;
+    for (const c of CITIES) { const d = (c.lat - lat) ** 2 + ((c.lon - lon) * Math.cos(lat * Math.PI / 180)) ** 2; if (d < bd) { bd = d; best = c; } }
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata';
+    const near = best && bd < 0.5 ? `near ${best.name}` : 'current location';
+    setPlace({ name: near, region: best ? best.region : '', label: best && bd < 0.5 ? `${best.name} (GPS), ${best.region}` : `GPS ${lat.toFixed(3)}, ${lon.toFixed(3)}`, lat, lon, tz });
+    toast('Location filled from GPS');
+  }, () => toast('Location permission denied. Type the city instead.'), { enableHighAccuracy: true, timeout: 10000 });
+});
+$('manBtn').addEventListener('click', () => $('manual').classList.toggle('hide'));
+$('manApply').addEventListener('click', () => {
+  const lat = parseFloat($('mLat').value), lon = parseFloat($('mLon').value), off = parseFloat($('mOff').value);
+  if (!(Math.abs(lat) <= 90 && Math.abs(lon) <= 180 && Math.abs(off) <= 14)) return toast('Check latitude, longitude and offset');
+  setPlace({ name: $('pob').value.trim() || 'Custom', region: '', label: $('pob').value.trim() || `${lat}, ${lon}`, lat, lon, tz: null, offsetMin: Math.round(off * 60) });
+  $('manual').classList.add('hide');
+});
+$('tobU').addEventListener('change', () => { $('tob').disabled = $('tobU').checked; if ($('tobU').checked) $('tob').value = '12:00'; });
+
+/* ---------------- kundli drawing ---------------- */
+let chart = null, birth = null, style = 'north';
+const NH = [ // polygon, label point, sign-number point
+  ['200,0 300,100 200,200 100,100', [200, 72], [200, 182]], ['0,0 200,0 100,100', [100, 28], [100, 86]], ['0,0 100,100 0,200', [30, 100], [86, 100]],
+  ['0,200 100,100 200,200 100,300', [100, 172], [182, 200]], ['0,200 100,300 0,400', [30, 300], [86, 300]], ['0,400 100,300 200,400', [100, 352], [100, 316]],
+  ['200,400 100,300 200,200 300,300', [200, 272], [200, 220]], ['200,400 300,300 400,400', [300, 352], [300, 316]], ['400,400 300,300 400,200', [370, 300], [314, 300]],
+  ['400,200 300,300 200,200 300,100', [300, 172], [218, 200]], ['400,200 300,100 400,0', [370, 100], [314, 100]], ['400,0 300,100 200,0', [300, 28], [300, 86]]
+];
+function plabel(p) { return `${p.abbr}${p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? 'ᴿ' : ''} ${Math.floor(p.lon % 30)}°`; }
+function kundliSVG(c, st) {
+  const ls = c.asc.sign, byHouse = Array.from({ length: 12 }, () => []);
+  c.planets.forEach(p => byHouse[p.house - 1].push(plabel(p)));
+  let s = `<svg class="kundli" viewBox="-4 -4 408 408" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Birth chart" font-family="Plus Jakarta Sans, sans-serif">`;
+  if (st === 'north') {
+    s += `<rect x="0" y="0" width="400" height="400" fill="#0f1422" stroke="#d4af37" stroke-width="1.6"/>`;
+    NH.forEach(([pts, [lx, ly], [nx, ny]], h) => {
+      s += `<polygon points="${pts}" fill="${h === 0 ? 'rgba(212,175,55,.10)' : 'none'}" stroke="#d4af37" stroke-width="1.2"/>`;
+      s += `<text x="${nx}" y="${ny + 4}" text-anchor="middle" font-size="12" fill="#a8a399">${(ls + h) % 12 + 1}</text>`;
+      const items = h === 0 ? ['Asc ' + Math.floor(c.asc.lon % 30) + '°'].concat(byHouse[0]) : byHouse[h];
+      const small = [1, 2, 4, 5, 7, 8, 10, 11].includes(h), fs = small ? 11 : 12.5, lh = fs + 3;
+      const y0 = ly - (items.length - 1) * lh / 2 + (small && (h === 1 || h === 11) ? (items.length - 1) * lh / 2 : 0) - (small && (h === 5 || h === 7) ? (items.length - 1) * lh / 2 : 0);
+      items.forEach((t, i) => s += `<text x="${lx}" y="${y0 + i * lh}" text-anchor="middle" font-size="${fs}" font-weight="600" fill="${t.startsWith('Asc') ? '#e0573a' : '#f1d57a'}">${esc(t)}</text>`);
+    });
+  } else {
+    const pos = [[1, 0], [2, 0], [3, 0], [3, 1], [3, 2], [3, 3], [2, 3], [1, 3], [0, 3], [0, 2], [0, 1], [0, 0]]; // Aries..Pisces
+    s += `<rect x="0" y="0" width="400" height="400" fill="#0f1422" stroke="#d4af37" stroke-width="1.6"/>`;
+    pos.forEach(([cx, cy], sign) => {
+      const x = cx * 100, y = cy * 100, h = (sign - ls + 12) % 12, items = (sign === ls ? ['Asc ' + Math.floor(c.asc.lon % 30) + '°'] : []).concat(byHouse[h]);
+      s += `<rect x="${x}" y="${y}" width="100" height="100" fill="${sign === ls ? 'rgba(212,175,55,.10)' : 'none'}" stroke="#d4af37" stroke-width="1.2"/>`;
+      if (sign === ls) s += `<line x1="${x}" y1="${y + 18}" x2="${x + 18}" y2="${y}" stroke="#e0573a" stroke-width="1.4"/>`;
+      s += `<text x="${x + 94}" y="${y + 15}" text-anchor="end" font-size="11" fill="#a8a399">${AS.SHORT[sign]}</text>`;
+      items.forEach((t, i) => s += `<text x="${x + 50}" y="${y + 36 + i * 15}" text-anchor="middle" font-size="12" font-weight="600" fill="${t.startsWith('Asc') ? '#e0573a' : '#f1d57a'}">${esc(t)}</text>`);
+    });
+    s += `<text x="200" y="192" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="26" font-weight="700" fill="#f1d57a">Rashi</text><text x="200" y="216" text-anchor="middle" font-size="12" fill="#a8a399">D1 · Lahiri</text>`;
+  }
+  return s + '</svg>';
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  style = b.dataset.st; document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  if (chart) $('kundli').innerHTML = kundliSVG(chart, style);
+}));
+
+/* ---------------- cast & render ---------------- */
+function chartSummary(c, b) {
+  const P = c.P, L = [];
+  L.push(`Name: ${b.name}`, `Gender: ${b.gender}`, `Birth date: ${b.dob}`, `Birth time: ${b.tobUnknown ? '12:00 (time not known)' : b.tob}`, `Place: ${b.placeLabel}`, `Coordinates: ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)} (${b.tz || offStr(c.offsetMin)})`);
+  L.push(`Lagna: ${AS.SIGNS[c.asc.sign]} ${c.asc.deg}, ${c.asc.nak.name} pada ${c.asc.nak.pada}`);
+  L.push(`Moon (Rashi): ${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}, Nakshatra ${P.Moon.nak.name} pada ${P.Moon.nak.pada}`);
+  L.push(`Dasha now: ${c.md ? c.md.lord : '—'} Mahadasha / ${c.ad ? c.ad.lord : '—'} Antardasha (till ${c.ad ? fmtDate(c.ad.end) : '—'})`);
+  return L.join('\n');
+}
+const BHAVA = [['Tanu', 'Self, body, personality, vitality'], ['Dhana', 'Wealth, family, speech, food'], ['Sahaja', 'Courage, siblings, communication, short travel'],
+  ['Sukha', 'Mother, home, property, vehicles, inner peace'], ['Putra', 'Children, education, intelligence, creativity'], ['Ripu', 'Health, debts, enemies, competition, service'],
+  ['Kalatra', 'Marriage, spouse, partnerships, business'], ['Ayu', 'Transformation, inheritance, research, sudden events'], ['Dharma', 'Fortune, father, guru, faith, higher learning'],
+  ['Karma', 'Career, status, authority, reputation'], ['Labha', 'Gains, income, friends, wishes fulfilled'], ['Vyaya', 'Expenses, foreign lands, sleep, spirituality, moksha']];
+const ASPECTS = { Mars: [4, 7, 8], Jupiter: [5, 7, 9], Saturn: [3, 7, 10] };
+function houses(c) {
+  return BHAVA.map(([nm, area], i) => {
+    const h = i + 1, sign = (c.asc.sign + i) % 12, lord = AS.LORD[sign], L = c.P[lord];
+    const occ = c.planets.filter(p => p.house === h).map(p => p.name);
+    const asp = c.planets.filter(p => p.name !== 'Rahu' && p.name !== 'Ketu' && (ASPECTS[p.name] || [7]).some(n => (p.house - 1 + n - 1) % 12 + 1 === h)).map(p => p.name);
+    return { h, nm, area, sign, lord, lordHouse: L.house, lordSign: L.sign, lordDig: L.dignity, lordRetro: L.retro, occ, asp };
+  });
+}
+const lifeDashas = c => c.vim.list.filter(x => x.start < c.utcMs + 100 * AS.YEAR).map(x => ({ ...x, a0: Math.max(0, (x.start - c.utcMs) / AS.YEAR), a1: (x.end - c.utcMs) / AS.YEAR }));
+function chartForAI(c, b) {
+  const rows = c.planets.map(p => `${p.name}: ${AS.SIGNS[p.sign]} ${p.deg}, house ${p.house}, ${p.nak.name} pada ${p.nak.pada} (lord ${p.nak.lord})${p.retro ? ', retrograde' : ''}${p.dignity ? ', ' + p.dignity : ''}`);
+  const md = lifeDashas(c).map(x => `${x.lord} MD ${fmtDate(Math.max(x.start, c.utcMs))} – ${fmtDate(x.end)} (age ${Math.floor(x.a0)}–${Math.floor(x.a1)})`);
+  const hs = houses(c).map(x => `House ${x.h} ${x.nm} (${x.area}): ${AS.SIGNS[x.sign]}; lord ${x.lord} in house ${x.lordHouse} (${SN[x.lordSign]}${x.lordDig ? ', ' + x.lordDig : ''}${x.lordRetro ? ', R' : ''}); occupants: ${x.occ.join(', ') || 'none'}; aspected by: ${x.asp.join(', ') || 'none'}`);
+  const ad = c.md ? c.md.subs.map(x => `${x.lord} AD ${fmtDate(x.start)} – ${fmtDate(x.end)}`) : [];
+  return `${chartSummary(c, b)}
+Ayanamsa (Lahiri): ${c.ayanamsa.toFixed(3)}°, whole-sign houses, mean nodes
+Lagna lord: ${c.lagnaLord}; Moon-sign lord: ${c.moonLord}
+Planets:\n${rows.join('\n')}
+Panchang at birth: ${c.panchang.vara}, ${c.panchang.tithi}, Yoga ${c.panchang.yoga}
+Houses (whole-sign, Parashari aspects; Mars 4/7/8, Jupiter 5/7/9, Saturn 3/7/10):\n${hs.join('\n')}
+Lifetime Mahadasha sequence (from birth):\n${md.join('\n')}
+Antardashas in current Mahadasha:\n${ad.join('\n')}
+Current transits (today ${fmtDate(Date.now())}): ${c.transits.map(t => `${t.name} in ${AS.SIGNS[t.sign]} ${t.deg} (${t.fromMoon} from Moon, ${t.fromLagna} from Lagna)${t.retro && t.name !== 'Rahu' && t.name !== 'Ketu' ? ' R' : ''}`).join('; ')}
+Sade Sati status: ${c.sadeSati}
+Mars placement: house ${c.manglik.house} (${c.manglik.is ? 'Mangal dosha by lagna' : 'no Mangal dosha by lagna'})`;
+}
+function renderChart() {
+  const c = chart, b = birth, P = c.P;
+  $('emptyCard').classList.add('hide'); $('chartCard').classList.remove('hide'); $('askCard').classList.remove('hide');
+  $('cName').textContent = `${b.name}`;
+  $('cMeta').textContent = `${b.gender} · ${new Date(b.dob + 'T00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} · ${b.tobUnknown ? 'time not known' : t12(b.tob)} · ${b.placeLabel} (${b.tz || offStr(c.offsetMin)})`;
+  const pill = (k, v, s) => `<div class="pill"><span>${k}</span><b>${esc(v)}</b><small>${esc(s)}</small></div>`;
+  $('pillars').innerHTML = pill('Lagna', SN[c.asc.sign], `${SE[c.asc.sign]} ${c.asc.deg}`) + pill('Chandra Rashi', SN[P.Moon.sign], `${SE[P.Moon.sign]} ${P.Moon.deg}`)
+    + pill('Janma Nakshatra', P.Moon.nak.name, `Pada ${P.Moon.nak.pada} · lord ${P.Moon.nak.lord}`) + pill('Surya Rashi', SN[P.Sun.sign], `${SE[P.Sun.sign]} ${P.Sun.deg}`);
+  $('kundli').innerHTML = kundliSVG(c, style);
+  const kv = a => a.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  $('panchang').innerHTML = kv([['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Nakshatra', c.panchang.nakshatra], ['Yoga', c.panchang.yoga], ['Lagna lord', c.lagnaLord], ['Rashi lord', c.moonLord], ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']]);
+  $('ptab').innerHTML = `<thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>House</th></tr></thead><tbody>` + c.planets.map(p =>
+    `<tr><td class="n"><b>${p.name}</b>${p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? '<span class="tag r">R</span>' : ''}</td><td>${SN[p.sign]}${p.dignity ? `<span class="tag">${p.dignity}</span>` : ''}</td><td class="n">${p.deg}</td><td>${p.nak.name} ${p.nak.pada}</td><td class="n">${p.house}</td></tr>`).join('') + '</tbody>';
+  const now = Date.now(), mds = c.vim.list.filter(x => x.end > c.utcMs).slice(0, 9), tot = mds.length ? mds[mds.length - 1].end - mds[0].start : 1;
+  $('dashaNow').innerHTML = c.md ? `Running now: <b style="color:var(--gold2)">${c.md.lord} Mahadasha</b> → <b style="color:var(--gold2)">${c.ad.lord} Antardasha</b>, till ${fmtDate(c.ad.end)}. Balance at birth: ${c.vim.balanceYears.toFixed(1)} years of ${c.vim.list[0].lord}.` : 'Dasha period outside computed range.';
+  $('dasha').innerHTML = mds.map(x => `<div class="${x === c.md ? 'now' : ''}"><b>${x.lord}</b><i style="width:${Math.max(6, (x.end - x.start) / tot * 100 * 2.2)}%"></i><small>${new Date(Math.max(x.start, c.utcMs)).getFullYear()} – ${new Date(x.end).getFullYear()}</small></div>`).join('');
+  $('ttab').innerHTML = `<thead><tr><th>Graha</th><th>Transit rashi</th><th>From Moon</th><th>From Lagna</th></tr></thead><tbody>` + c.transits.map(t =>
+    `<tr><td class="n"><b>${t.name}</b>${t.retro && t.name !== 'Rahu' && t.name !== 'Ketu' ? '<span class="tag r">R</span>' : ''}</td><td>${SN[t.sign]} ${t.deg}</td><td class="n">${t.fromMoon}</td><td class="n">${t.fromLagna}</td></tr>`).join('') + '</tbody>';
+  $('yogas').innerHTML = kv([['Shani Sade Sati', c.sadeSati], ['Mangal dosha (from Lagna)', c.manglik.is ? `Present · Mars in house ${c.manglik.house}` : `Not present · Mars in house ${c.manglik.house}`]]);
+  $('tobNote').textContent = b.tobUnknown ? 'Birth time not known: Lagna and houses use 12:00 noon and may be off. The Moon sign, Nakshatra and Dasha are more dependable; read the chart from the Moon (Chandra Kundli).' : '';
+  renderPlans();
+}
+$('birthForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('nm').value.trim(), dob = $('dob').value, tobUnknown = $('tobU').checked, tob = tobUnknown ? '12:00' : $('tob').value;
+  if (!name) return toast('Please enter the full name'), $('nm').focus();
+  if (!dob) return toast('Please enter the date of birth'), $('dob').focus();
+  if (!tob) return toast('Please enter the time of birth'), $('tob').focus();
+  if (!place) {
+    const q = $('pob').value.trim().toLowerCase().split(',')[0], m = CITIES.find(c => c.name.toLowerCase() === q);
+    if (m) setPlace(m); else return toast('Pick the birth place from the suggestions'), $('pob').focus();
+  }
+  const [y, mo, d] = dob.split('-').map(Number), [h, mi] = tob.split(':').map(Number);
+  try { chart = AS.cast({ y, mo, d, h, mi, lat: place.lat, lon: place.lon, tz: place.tz, offsetMin: place.tz ? null : place.offsetMin }); }
+  catch (err) { console.error(err); return toast('Could not compute this chart. Check the details.'); }
+  birth = { name, gender: $('gd').value, dob, tob, tobUnknown, placeLabel: $('pob').value.trim(), lat: place.lat, lon: place.lon, tz: place.tz };
+  store.set('jy_last', { birth, place });
+  renderChart();
+  if (window.innerWidth < 980) $('chartCard').scrollIntoView({ behavior: 'smooth' });
+});
+$('copyChart').addEventListener('click', () => chart && copyText(chartSummary(chart, birth) + `\nPlanets: ${chart.planets.map(p => `${p.abbr} ${AS.SHORT[p.sign]} ${p.deg}`).join(', ')}`));
+
+/* ---------------- plans & questions ---------------- */
+let plan = null, order = null, shotFile = null;
+function renderPlans() {
+  $('plans').innerHTML = CONFIG.PLANS.map(p => `<button type="button" class="plan ${plan && plan.id === p.id ? 'on' : ''}" data-id="${esc(p.id)}" aria-pressed="${plan && plan.id === p.id}">
+    <span class="off">${Math.round((1 - p.price / p.mrp) * 100)}% off</span><h4>${esc(p.title)}</h4>
+    <div class="pr"><b>₹${p.price}</b><s>₹${p.mrp}</s></div><p>${esc(p.note)}</p></button>`).join('');
+}
+$('plans').addEventListener('click', e => {
+  const b = e.target.closest('.plan'); if (!b) return;
+  const prev = [...document.querySelectorAll('#qBox textarea')].map(t => t.value);
+  plan = CONFIG.PLANS.find(p => p.id === b.dataset.id); renderPlans();
+  $('qBox').innerHTML = Array.from({ length: plan.questions }, (_, i) => `<div class="f"><label for="q${i}">Question ${i + 1} *</label><textarea id="q${i}" rows="2" maxlength="600" placeholder="${['e.g. When will I get a stable job?', 'e.g. Is 2027 favourable for marriage?', 'e.g. Should I start my own business?', 'e.g. How is my health in the coming Saturn period?', 'e.g. Which remedy suits me most?'][i % 5]}">${esc(prev[i] || '')}</textarea></div>`).join('');
+  $('q0').focus();
+});
+const last = store.get('jy_contact', {}); if (last.email) $('cEmail').value = last.email; if (last.phone) $('cPhone').value = last.phone;
+const emailOk = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+$('proceed').addEventListener('click', () => {
+  if (!chart) return toast('Generate your Kundli first');
+  if (!plan) return toast('Choose a plan');
+  const qs = [...document.querySelectorAll('#qBox textarea')].map(t => t.value.trim());
+  const miss = qs.findIndex(q => !q); if (miss >= 0) return toast(`Please write question ${miss + 1}`), $('q' + miss).focus();
+  const email = $('cEmail').value.trim(), phone = $('cPhone').value.trim();
+  if (!emailOk(email)) return toast('Enter a valid email'), $('cEmail').focus();
+  if (digits(phone).length < 10) return toast('Enter a valid WhatsApp number'), $('cPhone').focus();
+  store.set('jy_contact', { email, phone });
+  const d = new Date(), id = `JY${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  order = { id, plan, qs, email, phone };
+  const upi = `upi://pay?pa=${encodeURIComponent(CONFIG.UPI_ID)}&pn=${encodeURIComponent(CONFIG.PAYEE_NAME)}&am=${plan.price.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Jyotish ' + id)}`;
+  $('payAmt').textContent = `₹${plan.price}`; $('payPlan').textContent = `${plan.title} · was ₹${plan.mrp}`;
+  $('upiId').textContent = CONFIG.UPI_ID; $('upiLink').href = upi; $('ordId').textContent = id; $('pEmail').value = email;
+  try { const q = qrcode(0, 'M'); q.addData(upi); q.make(); $('qr').innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+  catch (e) { $('qr').innerHTML = '<p style="color:#111;font-size:13px;margin:8px">QR unavailable. Pay to the UPI ID shown.</p>'; }
+  $('askCard').classList.add('hide'); $('payCard').classList.remove('hide'); $('payCard').scrollIntoView({ behavior: 'smooth' });
+});
+$('copyUpi').addEventListener('click', () => copyText(CONFIG.UPI_ID));
+$('backPlans').addEventListener('click', () => { $('payCard').classList.add('hide'); $('askCard').classList.remove('hide'); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
+$('shot').addEventListener('change', () => {
+  shotFile = $('shot').files[0] || null;
+  if (shotFile) { $('shotPrev').src = URL.createObjectURL(shotFile); $('shotPrev').classList.remove('hide'); } else $('shotPrev').classList.add('hide');
+});
+function orderMessage() {
+  const o = order, b = birth;
+  return `*New Jyotish consultation*
+Order: ${o.id}
+Plan: ${o.plan.title} – Rs ${o.plan.price}
+UTR: ${o.utr}
+Email: ${o.email}
+WhatsApp: ${o.phone}
+
+*Birth details*
+${chartSummary(chart, b)}
+
+*Questions*
+${o.qs.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+Payment screenshot attached below.`;
+}
+$('sendWa').addEventListener('click', () => {
+  const utr = $('utr').value.trim(), email = $('pEmail').value.trim();
+  if (digits(utr).length < 6 && utr.length < 8) return toast('Enter the UPI transaction ID / UTR'), $('utr').focus();
+  if (!emailOk(email)) return toast('Enter a valid email'), $('pEmail').focus();
+  if (!shotFile) return toast('Add your payment screenshot'), $('shot').focus();
+  order.utr = utr; order.email = email;
+  const url = `https://wa.me/${waNum(CONFIG.WHATSAPP)}?text=${encodeURIComponent(orderMessage())}`;
+  $('waAgain').href = url;
+  const w = window.open(url, '_blank'); if (!w) toast('Tap “Open WhatsApp” to continue');
+  $('payCard').classList.add('hide'); $('doneCard').classList.remove('hide');
+  $('dName').textContent = birth.name.split(' ')[0]; $('dOrd').textContent = order.id; $('dPlan').textContent = `${order.plan.title} · ₹${order.plan.price}`;
+  const s = hoursState();
+  $('dHours').classList.toggle('on', s.open);
+  $('dHours').innerHTML = s.open ? `We're open now (${esc(CONFIG.HOURS.label)}). Expect your report on WhatsApp and email today.`
+    : `We're offline right now. Your report will be prepared during business hours, ${esc(CONFIG.HOURS.label)}, ${s.before ? 'later today' : 'from tomorrow morning'}.`;
+  $('shareShot').classList.toggle('hide', !(navigator.canShare && shotFile && navigator.canShare({ files: [shotFile] })));
+  $('doneCard').scrollIntoView({ behavior: 'smooth' });
+});
+$('shareShot').addEventListener('click', async () => { try { await navigator.share({ files: [shotFile], text: `Payment for order ${order.id}` }); } catch (e) {} });
+$('newAsk').addEventListener('click', () => { $('doneCard').classList.add('hide'); $('askCard').classList.remove('hide'); plan = null; $('qBox').innerHTML = ''; renderPlans(); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
+
+/* ---------------- admin ---------------- */
+const isAdmin = () => { try { return sessionStorage.getItem('jy_admin') === '1'; } catch (e) { return false; } };
+function showAdmin(on) { $('adminCard').classList.toggle('hide', !on); if (on) renderHist(); }
+function askPin() { if (isAdmin()) { showAdmin(true); $('adminCard').scrollIntoView({ behavior: 'smooth' }); return; } $('pin').value = ''; $('pinDlg').showModal(); }
+const hexB = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
+const bHex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+async function verifyPin(pin) {   // PBKDF2-SHA256; only the salted hash ships with the site
+  const parts = String(CONFIG.ADMIN_PIN_HASH).split('$');
+  if (parts[0] !== 'pbkdf2' || parts.length !== 4) throw new Error('Admin PIN is not set up on this site yet');
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: hexB(parts[2]), iterations: +parts[1] }, key, 256);
+  return bHex(bits) === parts[3];
+}
+$('pinForm').addEventListener('submit', async e => {
+  if (e.submitter && e.submitter.value === 'cancel') return;
+  e.preventDefault();
+  const f = store.get('jy_pinfail', { n: 0, until: 0 });
+  if (Date.now() < f.until) return toast(`Too many attempts. Try again in ${Math.ceil((f.until - Date.now()) / 60000)} min`);
+  $('pinOk').disabled = true;
+  try {
+    if (await verifyPin($('pin').value)) {
+      store.set('jy_pinfail', { n: 0, until: 0 });
+      try { sessionStorage.setItem('jy_admin', '1'); } catch (_) {}
+      $('pinDlg').close(); showAdmin(true); toast('Admin studio unlocked'); $('adminCard').scrollIntoView({ behavior: 'smooth' });
+    } else {
+      const n = f.n + 1; store.set('jy_pinfail', { n: n >= 5 ? 0 : n, until: n >= 5 ? Date.now() + 10 * 60000 : 0 });
+      toast(n >= 5 ? 'Too many attempts. Locked for 10 minutes' : 'Wrong PIN'); $('pin').select();
+    }
+  } catch (err) { toast(err.message || 'Could not check PIN'); }
+  finally { $('pinOk').disabled = false; }
+});
+$('lockBtn').addEventListener('click', () => { try { sessionStorage.removeItem('jy_admin'); } catch (_) {} showAdmin(false); $('reportCard').classList.add('hide'); });
+if (location.hash === '#admin') askPin(); else if (isAdmin()) showAdmin(true);
+window.addEventListener('hashchange', () => { if (location.hash === '#admin') askPin(); });
+
+const DEF = { gemini: 'gemini-flash-latest', claude: 'claude-sonnet-5-5' };
+const getSet = () => store.get('jy_ai', { prov: 'gemini', key: '', model: '' });
+function paintSetHelp() {
+  const p = $('sProv').value; $('sModel').placeholder = DEF[p];
+  $('sHelp').innerHTML = p === 'gemini' ? 'Free key: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Leave the model blank for the default.'
+    : 'Paid key: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Usage is billed per token.';
+}
+$('setBtn').addEventListener('click', () => { const s = getSet(); $('sProv').value = s.prov; $('sKey').value = s.key; $('sModel').value = s.model; paintSetHelp(); $('setDlg').showModal(); });
+$('sProv').addEventListener('change', paintSetHelp);
+$('sSave').addEventListener('click', () => { store.set('jy_ai', { prov: $('sProv').value, key: $('sKey').value.trim(), model: $('sModel').value.trim() }); toast('AI settings saved on this device'); });
+
+$('parseBtn').addEventListener('click', () => {
+  const t = $('orderPaste').value, g = k => { const m = t.match(new RegExp('^\\s*' + k + ':\\s*(.+)$', 'mi')); return m ? m[1].trim() : ''; };
+  if (!g('Name')) return toast('Could not read this order');
+  $('nm').value = g('Name'); const gd = g('Gender'); if (gd) $('gd').value = ['Male', 'Female', 'Other'].includes(gd) ? gd : 'Other';
+  $('dob').value = g('Birth date');
+  const bt = g('Birth time'); $('tobU').checked = /not known/i.test(bt); $('tob').value = bt.slice(0, 5) || '12:00'; $('tob').disabled = $('tobU').checked;
+  const co = g('Coordinates').match(/(-?[\d.]+),\s*(-?[\d.]+)\s*\(([^)]+)\)/), pl = g('Place');
+  if (co) {
+    const zone = co[3], om = zone.match(/UTC([+-])(\d+):(\d+)/);
+    setPlace({ name: pl, region: '', label: pl, lat: +co[1], lon: +co[2], tz: om ? null : zone, offsetMin: om ? (om[1] === '-' ? -1 : 1) * (+om[2] * 60 + +om[3]) : null });
+  }
+  $('aEmail').value = g('Email'); $('aPhone').value = g('WhatsApp');
+  const qm = t.split(/^\s*\*?Questions\*?\s*$/mi)[1] || '';
+  $('aQs').value = qm.split('\n').map(l => l.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(l => l && !/screenshot attached/i.test(l)).join('\n');
+  $('birthForm').requestSubmit(); toast('Order loaded and chart cast');
+});
+
+const SYS = `You are an experienced, compassionate Vedic astrologer (Jyotishi) trained in Parashari and Jaimini methods. You write personal consultation reports.
+Rules:
+- The chart data given is computed precisely (sidereal, Lahiri). Treat it as ground truth. Never recalculate or contradict positions, houses, nakshatras or dasha dates.
+- Answer every client question directly, using specific placements, house lords, dasha/antardasha timing and transits, with date windows where the data supports them.
+- Tone: dignified, warm, empowering. Frame difficult placements as karmic lessons with practical guidance. No fear-mongering, no guarantees, no medical, legal or financial instructions; suggest professional help where relevant.
+- Remedies (Upayas): mantras with counts, dana (charity) by weekday, fasting, lifestyle and seva. Gemstones only as optional with the caveat to consult an expert first.
+- Life areas: never predict death, age at death or lifespan figures, and never diagnose illness. For the 8th house speak of transformation, research, inheritance and resilience; for health speak of tendencies and care.
+- Format in Markdown with ALL of these sections, every time, in this order:
+## 1. Chart overview
+(Lagna, Moon sign, Nakshatra, key yogas, dignities and overall nature of the chart.)
+## 2. The 12 areas of life
+Write one ### heading for each of the 12 houses in order, e.g. "### 1st house · Tanu — Self & vitality". Under each: 
+**Strength:** one of Strong / Good / Mixed / Needs care, with one line why (sign, lord placement, occupants, aspects).
+Then 3–5 sentences: what this area promises, its strengths and challenges, and which Mahadasha/Antardasha periods (with ages or years) activate it.
+## 3. Lifetime outlook
+Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadasha with years and ages): main themes, which areas of life rise, what to prepare for. Mark the period running now.
+## 4. Dasha and transits now
+## 5. Answers to your questions
+(One ### heading per question, restating it. Omit this section only if no questions are given.)
+## 6. Upayas (remedies)
+## Closing blessing  (2–3 lines)`;
+async function callAI(prompt) {
+  const s = getSet(); if (!s.key) { $('setBtn').click(); throw new Error('Add your API key in AI settings first'); }
+  const model = s.model || DEF[s.prov];
+  if (s.prov === 'claude') {
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': s.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model, max_tokens: 16000, system: SYS, messages: [{ role: 'user', content: prompt }] }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j?.error?.message || `Claude error ${r.status}`);
+    return (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n');
+  }
+  let delay = 1500;
+  for (let a = 0; a < 4; a++) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.key },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 16384 } }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) { const t = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join(''); if (t) return t; throw new Error('Empty response. Try again.'); }
+    if ((r.status === 429 || r.status >= 500) && a < 3) { await new Promise(res => setTimeout(res, delay)); delay *= 2; continue; }
+    throw new Error((j?.error?.message || `Gemini error ${r.status}`) + (r.status === 429 ? ' (free-tier limit reached; try later or enable billing)' : ''));
+  }
+}
+let report = null;
+const md2html = md => { const s = String(md).replace(/</g, '&lt;'); return window.marked ? marked.parse(s) : '<p>' + s.replace(/\n/g, '<br>') + '</p>'; };
+const plain = md => String(md).replace(/^#{1,6}\s*/gm, '').replace(/\*\*(.+?)\*\*/g, '*$1*').replace(/^\s*[-*]\s+/gm, '• ').replace(/\n{3,}/g, '\n\n');
+function chartDetailsHTML(c, b) {
+  const P = c.P, row = a => `<tr>${a.map(x => `<td>${esc(x)}</td>`).join('')}</tr>`;
+  const kv = a => `<div class="kv">${a.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+  return `<h2>Birth chart details</h2>
+  <p>${esc(b.name)} · ${esc(b.gender)} · ${esc(b.dob)} · ${b.tobUnknown ? 'time not known (12:00 used)' : esc(t12(b.tob))} · ${esc(b.placeLabel)} · ${b.lat.toFixed(2)}, ${b.lon.toFixed(2)} (${esc(b.tz || offStr(c.offsetMin))})</p>
+  <div class="kwrap"><div>${kundliSVG(c, style)}</div><div>${kv([['Lagna', `${AS.SIGNS[c.asc.sign]} ${c.asc.deg}`], ['Chandra Rashi', `${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}`], ['Janma Nakshatra', `${P.Moon.nak.name} pada ${P.Moon.nak.pada}`], ['Surya Rashi', AS.SIGNS[P.Sun.sign]],
+    ['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Yoga', c.panchang.yoga], ['Running Dasha', c.md ? `${c.md.lord} / ${c.ad.lord} till ${fmtDate(c.ad.end)}` : '—'], ['Sade Sati', c.sadeSati], ['Mangal dosha', c.manglik.is ? `Present (Mars house ${c.manglik.house})` : 'Not present'], ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']])}</div></div>
+  <h3>Graha positions</h3><div class="scroll"><table><thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Note</th></tr></thead><tbody>${c.planets.map(p => row([p.name, SN[p.sign], p.deg, `${p.nak.name} ${p.nak.pada}`, p.house, [p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? 'Retrograde' : '', p.dignity].filter(Boolean).join(', ')])).join('')}</tbody></table></div>
+  <h3>12 Bhavas</h3><div class="scroll"><table><thead><tr><th>House</th><th>Area</th><th>Rashi</th><th>Lord in</th><th>Occupants</th></tr></thead><tbody>${houses(c).map(x => row([`${x.h} ${x.nm}`, x.area, SN[x.sign], `${x.lord} → ${x.lordHouse}`, x.occ.join(', ') || '—'])).join('')}</tbody></table></div>
+  <h3>Lifetime Vimshottari Mahadasha</h3><div class="scroll"><table><thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Age</th></tr></thead><tbody>${lifeDashas(c).map(x => row([x.lord + (x === c.md ? ' (now)' : ''), fmtDate(Math.max(x.start, c.utcMs)), fmtDate(x.end), `${Math.floor(x.a0)}–${Math.floor(x.a1)}`])).join('')}</tbody></table></div>
+  <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">`;
+}
+const reportText = r => `🙏 ${CONFIG.BUSINESS_NAME} · Jyotish report for ${r.name}\n\n${chartSummary(chart, birth)}\nPlanets: ${chart.planets.map(p => `${p.name} ${SN[p.sign]} ${p.deg} (H${p.house})`).join(', ')}\n\n${plain(r.md)}`;
+function showReport(r) {
+  report = r; $('reportCard').classList.remove('hide');
+  $('rTitle').textContent = `Report · ${r.name}`; $('rBody').innerHTML = chartDetailsHTML(chart, birth) + md2html(r.md);
+  const txt = reportText(r);
+  $('rWa').href = r.phone ? `https://wa.me/${waNum(r.phone)}?text=${encodeURIComponent(`🙏 Namaste ${r.name.split(' ')[0]}, your Jyotish report from ${CONFIG.BUSINESS_NAME} is ready. Sharing it here.`)}` : '#';
+  $('rWa').classList.toggle('hide', !r.phone);
+  $('rMail').href = `mailto:${encodeURIComponent(r.email || '')}?subject=${encodeURIComponent('Your Jyotish report – ' + r.name)}&body=${encodeURIComponent(txt.slice(0, 1800) + (txt.length > 1800 ? '\n\n(Full report attached)' : ''))}`;
+  $('reportCard').scrollIntoView({ behavior: 'smooth' });
+}
+$('genBtn').addEventListener('click', async () => {
+  if (!chart) return toast('Cast the client chart first (left form)');
+  const qs = $('aQs').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const btn = $('genBtn'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Writing report…';
+  try {
+    const prompt = `Prepare a complete personal Vedic astrology report: chart overview, all 12 areas of life, lifetime outlook, current period, answers and remedies. Today is ${fmtDate(Date.now())}.
+
+CLIENT CHART (computed):
+${chartForAI(chart, birth)}
+
+CLIENT QUESTIONS:
+${qs.length ? qs.map((q, i) => `${i + 1}. ${q}`).join('\n') : '(none — omit section 5)'}
+${$('aNotes').value.trim() ? `\nASTROLOGER'S NOTES (follow these): ${$('aNotes').value.trim()}` : ''}`;
+    const md = await callAI(prompt);
+    const r = { id: 'r' + Date.now(), name: birth.name, date: Date.now(), phone: $('aPhone').value.trim(), email: $('aEmail').value.trim(), qs, md, birth, place };
+    const h = store.get('jy_reports', []); h.unshift(r); store.set('jy_reports', h.slice(0, 60)); renderHist();
+    showReport(r); toast('Report ready');
+  } catch (err) { toast(err.message || 'AI request failed'); console.error(err); }
+  finally { btn.disabled = false; btn.textContent = 'Generate report'; }
+});
+function renderHist() {
+  const h = store.get('jy_reports', []);
+  $('hist').innerHTML = h.length ? h.map(r => `<div><span><b style="color:var(--gold2)">${esc(r.name)}</b><br><small style="color:var(--mut)">${fmtDate(r.date)} · ${r.qs.length ? `${r.qs.length} question${r.qs.length > 1 ? 's' : ''}` : 'Life report'}</small></span><span class="btns"><button class="btn sm" data-open="${esc(r.id)}">Open</button><button class="btn sm" data-del="${esc(r.id)}" aria-label="Delete">✕</button></span></div>`).join('')
+    : '<p class="note">Reports you generate are kept on this device.</p>';
+}
+$('hist').addEventListener('click', e => {
+  const o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]'), h = store.get('jy_reports', []);
+  if (o) { const r = h.find(x => x.id === o.dataset.open); if (r) { if (r.birth) { birth = r.birth; place = r.place; const [y, mo, dd] = r.birth.dob.split('-').map(Number), [hh, mi] = r.birth.tob.split(':').map(Number); chart = AS.cast({ y, mo, d: dd, h: hh, mi, lat: r.birth.lat, lon: r.birth.lon, tz: r.birth.tz, offsetMin: r.birth.tz ? null : r.place && r.place.offsetMin }); renderChart(); } showReport(r); } }
+  if (d) { store.set('jy_reports', h.filter(x => x.id !== d.dataset.del)); renderHist(); }
+});
+$('rCopy').addEventListener('click', () => report && copyText(reportText(report)));
+$('rWa').addEventListener('click', () => { if (report) { copyText(reportText(report)); setTimeout(() => toast('Full report copied. Paste it in the chat, or attach the PDF.'), 400); } });
+$('rPrint').addEventListener('click', () => {
+  if (!report) return;
+  $('printArea').innerHTML = `<h1>${esc(CONFIG.BUSINESS_NAME)} · Jyotish report</h1>${chartDetailsHTML(chart, birth)}${md2html(report.md)}<p style="font-size:10pt;color:#555">Guidance for reflection; not a substitute for professional advice.</p>`;
+  try { window.print(); } catch (e) { toast('Printing is blocked here. Use Copy instead.'); }
+});
+
+/* restore last birth details */
+const lb = store.get('jy_last', null);
+if (lb && lb.birth) { const b = lb.birth; $('nm').value = b.name; $('gd').value = b.gender; $('dob').value = b.dob; $('tob').value = b.tob; $('tobU').checked = b.tobUnknown; $('tob').disabled = b.tobUnknown; if (lb.place) setPlace(lb.place); $('pob').value = b.placeLabel; }
+}
+</script>
+</body>
+</html>
