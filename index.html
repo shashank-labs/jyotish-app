@@ -278,13 +278,14 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
         </div>
         <div class="sec">
           <h3>After paying</h3>
-          <p class="note" style="margin:0 0 12px">Give us the UTR <b style="color:var(--gold2)">or</b> a payment screenshot. Either one is enough.</p>
+          <p class="note" style="margin:0 0 12px">Enter the UTR <b style="color:var(--gold2)">or</b> tick the screenshot option. Either one is enough.</p>
           <div class="row r2">
             <div class="f"><label for="utr">UPI transaction ID / UTR</label><input id="utr" inputmode="numeric" placeholder="12-digit UTR"></div>
             <div class="f"><label for="pEmail">Email for the report *</label><input id="pEmail" type="email" placeholder="you@email.com"></div>
           </div>
-          <div class="f"><label for="shot">or payment screenshot</label><input id="shot" type="file" accept="image/*"><img id="shotPrev" class="shot hide" alt="Payment screenshot preview"></div>
+          <div class="f"><label class="chk" style="color:var(--ink);font-size:15px;align-items:flex-start"><input type="checkbox" id="shotLater" style="margin-top:3px"> <span>No UTR? I'll send the <b style="color:var(--gold2)">payment screenshot</b> in the WhatsApp chat</span></label></div>
           <div class="btns"><button class="btn wa" type="button" id="sendWa">Send details on WhatsApp</button><button class="btn sm" type="button" id="backPlans">Change plan</button></div>
+          <p class="note hide" id="sendHint">After WhatsApp opens and you send the details, tap the attach (paperclip) icon in the same chat and send your payment screenshot.</p>
         </div>
       </section>
 
@@ -294,9 +295,10 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
           <h2>Dhanyavaad, <span id="dName"></span></h2>
           <p class="sub">Order <b id="dOrd" style="color:var(--gold2)"></b> · <span id="dPlan"></span></p>
         </div>
+        <div class="status hide" id="dShot" style="border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08)"><b style="color:#f19a86">Next step: send your payment screenshot.</b><br>In the same WhatsApp chat, tap the attach (paperclip) icon → Gallery → your payment screenshot. We start your report once it arrives.</div>
         <div class="status" id="dHours"></div>
         <p class="note" id="dNote"></p>
-        <div class="btns" style="margin-top:12px"><button class="btn sm hide" type="button" id="shareShot">Share screenshot</button><a class="btn wa" id="waAgain" href="#" target="_blank" rel="noopener">Open WhatsApp</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
+        <div class="btns" style="margin-top:12px"><a class="btn wa" id="waAgain" href="#" target="_blank" rel="noopener">Open WhatsApp</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
       </section>
 
       <section class="card hide" id="reportCard">
@@ -315,8 +317,8 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
 </div></footer>
 
 <dialog id="pinDlg"><form method="dialog" id="pinForm">
-  <h3>Admin access</h3><p class="sub">Enter your PIN to open the report studio on this device.</p>
-  <div class="f"><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN"></div>
+  <h3>Admin access</h3><p class="sub">Enter your PIN or password to open the report studio on this device.</p>
+  <div class="f"><input id="pin" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="PIN / password"></div>
   <div class="btns"><button class="btn pri" value="ok" id="pinOk">Unlock</button><button class="btn sm" value="cancel" formnovalidate>Cancel</button></div>
 </form></dialog>
 
@@ -339,7 +341,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
 const CONFIG = {
   BUSINESS_NAME: 'Nakshatra Darpan',
   UPI_ID: 'nehatomar210@kotak',          // your UPI VPA (a business/merchant UPI ID works best)
-  PAYEE_NAME: 'Neha Tomar',     // exactly as registered on your UPI/bank account (what payers see)
+  PAYEE_NAME: 'NEHA TOMAR',     // exactly as registered on your UPI/bank account (what payers see)
   WHATSAPP: '919643330507',               // your WhatsApp number with country code, digits only
   ADMIN_PIN_HASH: '__ADMIN_PIN_HASH__',   // filled in at deploy from your ADMIN_PIN secret — do not put the PIN here
   HOURS: { open: 10, close: 18, label: '10 AM – 6 PM IST' },
@@ -725,7 +727,7 @@ $('birthForm').addEventListener('submit', e => {
 $('copyChart').addEventListener('click', () => chart && copyText(chartSummary(chart, birth) + `\nPlanets: ${chart.planets.map(p => `${p.abbr} ${AS.SHORT[p.sign]} ${p.deg}`).join(', ')}`));
 
 /* ---------------- plans & questions ---------------- */
-let plan = null, order = null, shotFile = null;
+let plan = null, order = null;
 function renderPlans() {
   $('plans').innerHTML = CONFIG.PLANS.map(p => `<button type="button" class="plan ${plan && plan.id === p.id ? 'on' : ''}" data-id="${esc(p.id)}" aria-pressed="${plan && plan.id === p.id}">
     <span class="off">${Math.round((1 - p.price / p.mrp) * 100)}% off</span><h4>${esc(p.title)}</h4>
@@ -760,16 +762,13 @@ $('proceed').addEventListener('click', () => {
 });
 $('copyUpi').addEventListener('click', () => copyText(CONFIG.UPI_ID));
 $('backPlans').addEventListener('click', () => { $('payCard').classList.add('hide'); $('askCard').classList.remove('hide'); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
-$('shot').addEventListener('change', () => {
-  shotFile = $('shot').files[0] || null;
-  if (shotFile) { $('shotPrev').src = URL.createObjectURL(shotFile); $('shotPrev').classList.remove('hide'); } else $('shotPrev').classList.add('hide');
-});
+$('shotLater').addEventListener('change', () => $('sendHint').classList.toggle('hide', !$('shotLater').checked));
 function orderMessage() {
   const o = order, b = birth;
   return `*New Jyotish consultation*
 Order: ${o.id}
 Plan: ${o.plan.title} – Rs ${o.plan.price}
-UTR: ${o.utr || 'not given (screenshot attached)'}
+UTR: ${o.utr || 'not given'}
 Email: ${o.email}
 WhatsApp: ${o.phone}
 
@@ -779,30 +778,28 @@ ${chartSummary(chart, b)}
 *Questions*
 ${o.qs.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 
-${o.hasShot ? 'Payment screenshot attached below.' : 'Payment reference: UTR above.'}`;
+${o.hasShot ? 'Payment screenshot: I will send it next in this chat.' : 'Payment reference: UTR above.'}`;
 }
 $('sendWa').addEventListener('click', () => {
-  const utr = $('utr').value.trim(), email = $('pEmail').value.trim();
-  if (!utr && !shotFile) return toast('Enter the UTR or add a payment screenshot'), $('utr').focus();
-  if (utr && digits(utr).length < 6 && utr.length < 8) return toast('That UTR looks too short. Check it, or clear it and add a screenshot'), $('utr').focus();
+  const utr = $('utr').value.trim(), email = $('pEmail').value.trim(), later = $('shotLater').checked;
+  if (!utr && !later) return toast('Enter the UTR, or tick that you’ll send the payment screenshot'), $('utr').focus();
+  if (utr && digits(utr).length < 6 && utr.length < 8) return toast('That UTR looks too short. Check it, or clear it and tick the screenshot option'), $('utr').focus();
   if (!emailOk(email)) return toast('Enter a valid email'), $('pEmail').focus();
-  order.utr = utr; order.email = email; order.hasShot = !!shotFile;
-  $('dNote').innerHTML = order.hasShot
-    ? 'WhatsApp opened with your birth details, questions and payment reference filled in. <b style="color:var(--gold2)">Attach your payment screenshot in that chat</b> before you tap send.'
-    : 'WhatsApp opened with your birth details, questions and UTR filled in. Just tap send in that chat.';
+  order.utr = utr; order.email = email; order.hasShot = later;
   const url = `https://wa.me/${waNum(CONFIG.WHATSAPP)}?text=${encodeURIComponent(orderMessage())}`;
   $('waAgain').href = url;
   const w = window.open(url, '_blank'); if (!w) toast('Tap “Open WhatsApp” to continue');
+  $('dNote').textContent = later ? 'WhatsApp opened with your birth details and questions filled in. Tap send, then send the screenshot as shown above.'
+    : 'WhatsApp opened with your birth details, questions and UTR filled in. Just tap send in that chat.';
+  $('dShot').classList.toggle('hide', !later);
   $('payCard').classList.add('hide'); $('doneCard').classList.remove('hide');
   $('dName').textContent = birth.name.split(' ')[0]; $('dOrd').textContent = order.id; $('dPlan').textContent = `${order.plan.title} · ₹${order.plan.price}`;
   const s = hoursState();
   $('dHours').classList.toggle('on', s.open);
   $('dHours').innerHTML = s.open ? `We're open now (${esc(CONFIG.HOURS.label)}). Expect your report on WhatsApp and email today.`
     : `We're offline right now. Your report will be prepared during business hours, ${esc(CONFIG.HOURS.label)}, ${s.before ? 'later today' : 'from tomorrow morning'}.`;
-  $('shareShot').classList.toggle('hide', !(navigator.canShare && shotFile && navigator.canShare({ files: [shotFile] })));
   $('doneCard').scrollIntoView({ behavior: 'smooth' });
 });
-$('shareShot').addEventListener('click', async () => { try { await navigator.share({ files: [shotFile], text: `Payment for order ${order.id}` }); } catch (e) {} });
 $('newAsk').addEventListener('click', () => { $('doneCard').classList.add('hide'); $('askCard').classList.remove('hide'); plan = null; $('qBox').innerHTML = ''; renderPlans(); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
 
 /* ---------------- admin ---------------- */
@@ -864,7 +861,7 @@ $('parseBtn').addEventListener('click', () => {
   }
   $('aEmail').value = g('Email'); $('aPhone').value = g('WhatsApp');
   const qm = t.split(/^\s*\*?Questions\*?\s*$/mi)[1] || '';
-  $('aQs').value = qm.split('\n').map(l => l.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(l => l && !/screenshot attached/i.test(l)).join('\n');
+  $('aQs').value = qm.split('\n').map(l => l.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(l => l && !/^payment (screenshot|reference)|screenshot attached/i.test(l)).join('\n');
   syncPh(); $('birthForm').requestSubmit(); toast('Order loaded and chart cast');
 });
 
