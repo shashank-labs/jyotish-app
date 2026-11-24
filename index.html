@@ -918,15 +918,17 @@ async function geminiModels(key) {
   if (!r.ok) throw new Error(`Gemini ${r.status}: ${j?.error?.message || 'could not list models'}`);
   return (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
 }
-function pickFlash(list) {
-  const ok = list.filter(n => /flash/i.test(n) && !/(image|tts|audio|live|embed|lite|8b)/i.test(n));
-  const score = n => { const v = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0); return v * 10 + (/latest/.test(n) ? 1 : 0) - (/preview|exp/.test(n) ? 3 : 0); };
-  return ok.sort((a, b) => score(b) - score(a))[0] || list.find(n => /flash/i.test(n)) || null;
+function rankFlash(list) {   // best Flash first, Flash-Lite as last resort
+  const ok = list.filter(n => /flash/i.test(n) && !/(image|tts|audio|live|embed|8b)/i.test(n));
+  const score = n => { const v = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0); return v * 10 + (/latest/.test(n) ? 1 : 0) - (/preview|exp/.test(n) ? 3 : 0) - (/lite/.test(n) ? 100 : 0); };
+  return ok.sort((a, b) => score(b) - score(a));
 }
+const pickFlash = list => rankFlash(list)[0] || null;
 function aiHint(m) {
   if (/API key not valid|API_KEY_INVALID|invalid x-api-key|authentication/i.test(m)) return 'The key was rejected. Copy it again from AI Studio (no spaces) and paste it in AI settings.';
   if (/429|quota|RESOURCE_EXHAUSTED|rate/i.test(m)) return 'Free-tier limit reached. Wait a while (daily quota resets at 1:30 PM IST) or enable billing on the key’s Google project.';
   if (/referer|referrer|PERMISSION_DENIED|403/i.test(m)) return 'The key has restrictions. In Google Cloud console → Credentials, allow your site (e.g. https://shashank-labs.github.io/*) or remove the restriction.';
+  if (/\b50[03]\b|high demand|overloaded|UNAVAILABLE/i.test(m)) return 'Google’s servers were busy for every model tried. This is temporary: wait 5–10 minutes and tap Generate again. Nothing is wrong with your key.';
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'The request was blocked before reaching Google. Check your internet, and turn off any ad-blocker or data-saver for this site.';
   if (/location|region|not available in your country/i.test(m)) return 'The API isn’t available from your network location.';
   return 'Open AI settings and tap “Test key” to check the key and model.';
@@ -941,8 +943,9 @@ async function callAI(prompt) {
     if (!r.ok) throw new Error(j?.error?.message || `Claude error ${r.status}`);
     return (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n');
   }
-  let delay = 1500, switched = false, cfg = { maxOutputTokens: 16384 };
-  for (let a = 0; a < 5; a++) {
+  let delay = 1500, switched = false, cfg = { maxOutputTokens: 16384 }, busy = 0, models = null;
+  const tried = new Set([model]);
+  for (let a = 0; a < 9; a++) {
     const body = { systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }] };
     if (cfg) body.generationConfig = cfg;
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.key }, body: JSON.stringify(body) });
@@ -958,7 +961,12 @@ async function callAI(prompt) {
       model = pick; switched = true; store.set('jy_ai', { ...s, model: pick }); toast(`Switched to model ${pick}`); continue;
     }
     if (cfg && r.status === 400 && /output.?tokens/i.test(msg)) { cfg = null; continue; }
-    if ((r.status === 429 || r.status >= 500) && a < 4) { await new Promise(res => setTimeout(res, delay)); delay *= 2; continue; }
+    if (r.status >= 500 && ++busy >= 2) {   // this model is overloaded: try the next-best model the key can use
+      models = models || await geminiModels(s.key).catch(() => []);
+      const alt = rankFlash(models).find(n => !tried.has(n));
+      if (alt) { tried.add(alt); model = alt; busy = 0; delay = 1500; toast(`Model busy, trying ${alt}`); continue; }
+    }
+    if ((r.status === 429 || r.status >= 500) && a < 8) { await new Promise(res => setTimeout(res, delay)); delay = Math.min(delay * 2, 8000); continue; }
     throw new Error(`Gemini ${r.status}: ${msg || 'request failed'}`);
   }
 }
