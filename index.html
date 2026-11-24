@@ -140,6 +140,8 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
 @keyframes sp{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.spin{animation:none}}
 #printArea{display:none}
+body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin-on .hero{display:none!important}
+.status.err{border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08);overflow-wrap:anywhere}
 @media print{
   body{background:#fff;color:#111}
   body>*:not(#printArea){display:none!important}
@@ -214,6 +216,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
         <div class="f"><label for="aQs">Client questions (one per line, optional)</label><textarea id="aQs" rows="4" placeholder="When will my career stabilise?&#10;Is 2027 good for marriage?"></textarea></div>
         <div class="f"><label for="aNotes">Your private notes for the AI (optional)</label><textarea id="aNotes" rows="2" placeholder="e.g. Keep remedies simple; client prefers Hindi terms"></textarea></div>
         <div class="btns"><button class="btn pri" type="button" id="genBtn">Generate report</button><button class="btn sm" type="button" id="setBtn">AI settings</button><button class="btn sm" type="button" id="lockBtn">Lock admin</button></div>
+        <div class="status err hide" id="aiErr" role="alert"></div>
         <div class="sec"><h3>Saved reports</h3><div class="hist" id="hist"><p class="note">Reports you generate are kept on this device.</p></div></div>
       </section>
     </div>
@@ -328,7 +331,8 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
   <div class="f"><label for="sKey">API key</label><input id="sKey" type="password" autocomplete="off" placeholder="Paste key"></div>
   <div class="f"><label for="sModel">Model</label><input id="sModel" placeholder="gemini-flash-latest"></div>
   <p class="note" id="sHelp"></p>
-  <div class="btns"><button class="btn pri" value="save" id="sSave">Save</button><button class="btn sm" value="cancel" formnovalidate>Close</button></div>
+  <div class="status hide" id="sTestOut" style="margin-top:0"></div>
+  <div class="btns"><button class="btn sm" type="button" id="sTest">Test key</button><button class="btn pri" value="save" id="sSave">Save</button><button class="btn sm" value="cancel" formnovalidate>Close</button></div>
 </form></dialog>
 
 <div class="toast" id="toast"></div>
@@ -804,7 +808,12 @@ $('newAsk').addEventListener('click', () => { $('doneCard').classList.add('hide'
 
 /* ---------------- admin ---------------- */
 const isAdmin = () => { try { return sessionStorage.getItem('jy_admin') === '1'; } catch (e) { return false; } };
-function showAdmin(on) { $('adminCard').classList.toggle('hide', !on); if (on) renderHist(); }
+function showAdmin(on) {
+  $('adminCard').classList.toggle('hide', !on); document.body.classList.toggle('admin-on', on);
+  $('castBtn').textContent = on ? 'Cast client chart' : 'Generate my free Kundli';
+  $('formCard').querySelector('.step').textContent = on ? 'Admin · Client birth details' : 'Step 1 · Birth details';
+  if (on) renderHist();
+}
 function askPin() { if (isAdmin()) { showAdmin(true); $('adminCard').scrollIntoView({ behavior: 'smooth' }); return; } $('pin').value = ''; $('pinDlg').showModal(); }
 const hexB = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
 const bHex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -844,8 +853,25 @@ function paintSetHelp() {
   $('sHelp').innerHTML = p === 'gemini' ? 'Free key: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Leave the model blank for the default.'
     : 'Paid key: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Usage is billed per token.';
 }
-$('setBtn').addEventListener('click', () => { const s = getSet(); $('sProv').value = s.prov; $('sKey').value = s.key; $('sModel').value = s.model; paintSetHelp(); $('setDlg').showModal(); });
+$('setBtn').addEventListener('click', () => { $('sTestOut').className = 'status hide'; const s = getSet(); $('sProv').value = s.prov; $('sKey').value = s.key; $('sModel').value = s.model; paintSetHelp(); $('setDlg').showModal(); });
 $('sProv').addEventListener('change', paintSetHelp);
+$('sTest').addEventListener('click', async () => {
+  const out = $('sTestOut'), key = $('sKey').value.trim(), prov = $('sProv').value;
+  out.className = 'status'; out.textContent = 'Checking…';
+  if (!key) { out.className = 'status err'; out.textContent = 'Paste a key first.'; return; }
+  try {
+    if (prov === 'gemini') {
+      const list = await geminiModels(key), want = $('sModel').value.trim();
+      if (want && !list.includes(want)) { const p = pickFlash(list); $('sModel').value = p || ''; out.className = 'status on'; out.textContent = `Key works. "${want}" isn't available, so I set the model to ${p}. Tap Save.`; }
+      else { const p = want || pickFlash(list); if (!want) $('sModel').value = p || ''; out.className = 'status on'; out.textContent = `Key works. Model: ${p}. Tap Save.`; }
+    } else {
+      const r = await fetch('https://api.anthropic.com/v1/models', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(`Claude ${r.status}: ${j?.error?.message || 'request failed'}`);
+      out.className = 'status on'; out.textContent = `Key works. Model: ${$('sModel').value.trim() || DEF.claude}. Tap Save.`;
+    }
+  } catch (e) { out.className = 'status err'; out.textContent = `${e.message} — ${aiHint(e.message)}`; }
+});
 $('sSave').addEventListener('click', () => { store.set('jy_ai', { prov: $('sProv').value, key: $('sKey').value.trim(), model: $('sModel').value.trim() }); toast('AI settings saved on this device'); });
 
 $('parseBtn').addEventListener('click', () => {
@@ -886,9 +912,28 @@ Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadas
 (One ### heading per question, restating it. Omit this section only if no questions are given.)
 ## 6. Upayas (remedies)
 ## Closing blessing  (2–3 lines)`;
+async function geminiModels(key) {
+  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`Gemini ${r.status}: ${j?.error?.message || 'could not list models'}`);
+  return (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
+}
+function pickFlash(list) {
+  const ok = list.filter(n => /flash/i.test(n) && !/(image|tts|audio|live|embed|lite|8b)/i.test(n));
+  const score = n => { const v = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0); return v * 10 + (/latest/.test(n) ? 1 : 0) - (/preview|exp/.test(n) ? 3 : 0); };
+  return ok.sort((a, b) => score(b) - score(a))[0] || list.find(n => /flash/i.test(n)) || null;
+}
+function aiHint(m) {
+  if (/API key not valid|API_KEY_INVALID|invalid x-api-key|authentication/i.test(m)) return 'The key was rejected. Copy it again from AI Studio (no spaces) and paste it in AI settings.';
+  if (/429|quota|RESOURCE_EXHAUSTED|rate/i.test(m)) return 'Free-tier limit reached. Wait a while (daily quota resets at 1:30 PM IST) or enable billing on the key’s Google project.';
+  if (/referer|referrer|PERMISSION_DENIED|403/i.test(m)) return 'The key has restrictions. In Google Cloud console → Credentials, allow your site (e.g. https://shashank-labs.github.io/*) or remove the restriction.';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'The request was blocked before reaching Google. Check your internet, and turn off any ad-blocker or data-saver for this site.';
+  if (/location|region|not available in your country/i.test(m)) return 'The API isn’t available from your network location.';
+  return 'Open AI settings and tap “Test key” to check the key and model.';
+}
 async function callAI(prompt) {
   const s = getSet(); if (!s.key) { $('setBtn').click(); throw new Error('Add your API key in AI settings first'); }
-  const model = s.model || DEF[s.prov];
+  let model = s.model || DEF[s.prov];
   if (s.prov === 'claude') {
     const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': s.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({ model, max_tokens: 16000, system: SYS, messages: [{ role: 'user', content: prompt }] }) });
@@ -896,14 +941,25 @@ async function callAI(prompt) {
     if (!r.ok) throw new Error(j?.error?.message || `Claude error ${r.status}`);
     return (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n');
   }
-  let delay = 1500;
-  for (let a = 0; a < 4; a++) {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.key },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 16384 } }) });
-    const j = await r.json().catch(() => ({}));
-    if (r.ok) { const t = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join(''); if (t) return t; throw new Error('Empty response. Try again.'); }
-    if ((r.status === 429 || r.status >= 500) && a < 3) { await new Promise(res => setTimeout(res, delay)); delay *= 2; continue; }
-    throw new Error((j?.error?.message || `Gemini error ${r.status}`) + (r.status === 429 ? ' (free-tier limit reached; try later or enable billing)' : ''));
+  let delay = 1500, switched = false, cfg = { maxOutputTokens: 16384 };
+  for (let a = 0; a < 5; a++) {
+    const body = { systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }] };
+    if (cfg) body.generationConfig = cfg;
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.key }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({})), msg = j?.error?.message || '';
+    if (r.ok) {
+      const c = j?.candidates?.[0], t = (c?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
+      if (t) return t;
+      throw new Error(`Gemini returned no text (${j?.promptFeedback?.blockReason ? 'blocked: ' + j.promptFeedback.blockReason : c?.finishReason || 'unknown reason'}). Try again.`);
+    }
+    if (!switched && (r.status === 404 || /not found|not supported|unknown model|invalid model/i.test(msg))) {   // model renamed or retired: pick a current one
+      const pick = pickFlash(await geminiModels(s.key));
+      if (!pick) throw new Error(`Model "${model}" isn't available and no Flash model was found for this key.`);
+      model = pick; switched = true; store.set('jy_ai', { ...s, model: pick }); toast(`Switched to model ${pick}`); continue;
+    }
+    if (cfg && r.status === 400 && /output.?tokens/i.test(msg)) { cfg = null; continue; }
+    if ((r.status === 429 || r.status >= 500) && a < 4) { await new Promise(res => setTimeout(res, delay)); delay *= 2; continue; }
+    throw new Error(`Gemini ${r.status}: ${msg || 'request failed'}`);
   }
 }
 let report = null;
@@ -934,6 +990,7 @@ function showReport(r) {
 $('genBtn').addEventListener('click', async () => {
   if (!chart) return toast('Cast the client chart first (left form)');
   const qs = $('aQs').value.split('\n').map(s => s.trim()).filter(Boolean);
+  $('aiErr').classList.add('hide');
   const btn = $('genBtn'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Writing report…';
   try {
     const prompt = `Prepare a complete personal Vedic astrology report: chart overview, all 12 areas of life, lifetime outlook, current period, answers and remedies. Today is ${fmtDate(Date.now())}.
@@ -948,7 +1005,7 @@ ${$('aNotes').value.trim() ? `\nASTROLOGER'S NOTES (follow these): ${$('aNotes')
     const r = { id: 'r' + Date.now(), name: birth.name, date: Date.now(), phone: $('aPhone').value.trim(), email: $('aEmail').value.trim(), qs, md, birth, place };
     const h = store.get('jy_reports', []); h.unshift(r); store.set('jy_reports', h.slice(0, 60)); renderHist();
     showReport(r); toast('Report ready');
-  } catch (err) { toast(err.message || 'AI request failed'); console.error(err); }
+  } catch (err) { const m = err.message || 'AI request failed'; $('aiErr').innerHTML = `<b style="color:#f19a86">Report not generated</b><br>${esc(m)}<br><br>${esc(aiHint(m))}`; $('aiErr').classList.remove('hide'); console.error(err); }
   finally { btn.disabled = false; btn.textContent = 'Generate report'; }
 });
 function renderHist() {
