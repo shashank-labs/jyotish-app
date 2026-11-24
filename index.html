@@ -272,11 +272,12 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
         </div>
         <div class="sec">
           <h3>After paying</h3>
+          <p class="note" style="margin:0 0 12px">Give us the UTR <b style="color:var(--gold2)">or</b> a payment screenshot. Either one is enough.</p>
           <div class="row r2">
-            <div class="f"><label for="utr">UPI transaction ID / UTR *</label><input id="utr" inputmode="numeric" placeholder="12-digit UTR"></div>
+            <div class="f"><label for="utr">UPI transaction ID / UTR</label><input id="utr" inputmode="numeric" placeholder="12-digit UTR"></div>
             <div class="f"><label for="pEmail">Email for the report *</label><input id="pEmail" type="email" placeholder="you@email.com"></div>
           </div>
-          <div class="f"><label for="shot">Payment screenshot *</label><input id="shot" type="file" accept="image/*"><img id="shotPrev" class="shot hide" alt="Payment screenshot preview"></div>
+          <div class="f"><label for="shot">or payment screenshot</label><input id="shot" type="file" accept="image/*"><img id="shotPrev" class="shot hide" alt="Payment screenshot preview"></div>
           <div class="btns"><button class="btn wa" type="button" id="sendWa">Send details on WhatsApp</button><button class="btn sm" type="button" id="backPlans">Change plan</button></div>
         </div>
       </section>
@@ -288,7 +289,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
           <p class="sub">Order <b id="dOrd" style="color:var(--gold2)"></b> · <span id="dPlan"></span></p>
         </div>
         <div class="status" id="dHours"></div>
-        <p class="note">WhatsApp opened with your birth details, questions and payment reference filled in. <b style="color:var(--gold2)">Attach your payment screenshot in that chat</b> before you tap send.</p>
+        <p class="note" id="dNote"></p>
         <div class="btns" style="margin-top:12px"><button class="btn sm hide" type="button" id="shareShot">Share screenshot</button><a class="btn wa" id="waAgain" href="#" target="_blank" rel="noopener">Open WhatsApp</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
       </section>
 
@@ -330,7 +331,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
    CONFIG — edit these before you publish
    ================================================================ */
 const CONFIG = {
-  BUSINESS_NAME: 'Jyotish AI',
+  BUSINESS_NAME: 'Nakshatra Darpan',
   UPI_ID: 'nehatomar210@kotak',          // your UPI VPA (a business/merchant UPI ID works best)
   PAYEE_NAME: 'Neha Tomar',               // name shown in the UPI app
   WHATSAPP: '919643330507',               // your WhatsApp number with country code, digits only
@@ -339,7 +340,7 @@ const CONFIG = {
   PLANS: [
     { id: 'q1', title: '1 question', questions: 1, mrp: 110, price: 11, note: 'One focused answer' },
     { id: 'q2', title: '2 questions', questions: 2, mrp: 200, price: 21, note: 'Two detailed answers' },
-    { id: 'q3', title: '3 questions', questions: 3, mrp: 500, price: 51, note: 'Three detailed answers' }
+    { id: 'q3', title: '3 questions', questions: 3, mrp: 500, price: 51, note: 'Three answers + remedies' }
   ]
 };
 </script>
@@ -758,7 +759,7 @@ function orderMessage() {
   return `*New Jyotish consultation*
 Order: ${o.id}
 Plan: ${o.plan.title} – Rs ${o.plan.price}
-UTR: ${o.utr}
+UTR: ${o.utr || 'not given (screenshot attached)'}
 Email: ${o.email}
 WhatsApp: ${o.phone}
 
@@ -768,14 +769,17 @@ ${chartSummary(chart, b)}
 *Questions*
 ${o.qs.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 
-Payment screenshot attached below.`;
+${o.hasShot ? 'Payment screenshot attached below.' : 'Payment reference: UTR above.'}`;
 }
 $('sendWa').addEventListener('click', () => {
   const utr = $('utr').value.trim(), email = $('pEmail').value.trim();
-  if (digits(utr).length < 6 && utr.length < 8) return toast('Enter the UPI transaction ID / UTR'), $('utr').focus();
+  if (!utr && !shotFile) return toast('Enter the UTR or add a payment screenshot'), $('utr').focus();
+  if (utr && digits(utr).length < 6 && utr.length < 8) return toast('That UTR looks too short. Check it, or clear it and add a screenshot'), $('utr').focus();
   if (!emailOk(email)) return toast('Enter a valid email'), $('pEmail').focus();
-  if (!shotFile) return toast('Add your payment screenshot'), $('shot').focus();
-  order.utr = utr; order.email = email;
+  order.utr = utr; order.email = email; order.hasShot = !!shotFile;
+  $('dNote').innerHTML = order.hasShot
+    ? 'WhatsApp opened with your birth details, questions and payment reference filled in. <b style="color:var(--gold2)">Attach your payment screenshot in that chat</b> before you tap send.'
+    : 'WhatsApp opened with your birth details, questions and UTR filled in. Just tap send in that chat.';
   const url = `https://wa.me/${waNum(CONFIG.WHATSAPP)}?text=${encodeURIComponent(orderMessage())}`;
   $('waAgain').href = url;
   const w = window.open(url, '_blank'); if (!w) toast('Tap “Open WhatsApp” to continue');
