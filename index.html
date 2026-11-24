@@ -40,7 +40,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(11,14,23,.88);backdrop-f
 .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding-bottom:30px}
 @media(min-width:980px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start}.sticky{position:sticky;top:80px}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:clamp(16px,3vw,26px);box-shadow:0 18px 40px rgba(0,0,0,.4)}
-.card+.card{margin-top:20px}
+.grid>div{display:flex;flex-direction:column;gap:20px}
 .step{font-size:13px;color:var(--gold);font-weight:600;margin-bottom:4px}
 .sub{color:var(--mut);font-size:14px;margin:6px 0 16px}
 label{display:block;font-size:13px;color:var(--mut);margin:0 0 6px;font-weight:500}
@@ -140,7 +140,9 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
 @keyframes sp{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.spin{animation:none}}
 #printArea{display:none}
-body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin-on .hero{display:none!important}
+body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin-on .hero,body.admin-on #emptyCard{display:none!important}
+.admin-only{display:none!important}body.admin-on .admin-only{display:block!important}body.admin-on main{padding-top:20px}
+.flow{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0;padding:0;list-style:none;counter-reset:f}.flow li{counter-increment:f;font-size:13px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 10px 3px 6px}.flow li::before{content:counter(f);display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(212,175,55,.18);color:var(--gold2);font-size:11px;font-weight:700;margin-right:6px}
 .status.err{border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08);overflow-wrap:anywhere}
 @media print{
   body{background:#fff;color:#111}
@@ -170,6 +172,19 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
   <div class="grid">
     <!-- LEFT: birth form -->
     <div class="sticky">
+      <!-- ADMIN · step 1 -->
+      <section class="card admin admin-only" id="adminTop">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <div><div class="step" style="color:#f19a86">Admin · only on this device</div><h2>Report studio</h2></div>
+          <div class="btns"><button class="btn sm" type="button" id="setBtn">AI settings</button><button class="btn sm" type="button" id="lockBtn">Lock</button></div>
+        </div>
+        <ol class="flow"><li>Load the client</li><li>Check birth details</li><li>Review chart</li><li>Add questions &amp; generate</li><li>Send report</li></ol>
+        <div class="step" style="margin-top:16px">1 · Load client from WhatsApp order</div>
+        <textarea id="orderPaste" rows="4" placeholder="Paste the client's full WhatsApp order message here"></textarea>
+        <div class="btns" style="margin-top:10px"><button class="btn pri sm" type="button" id="parseBtn">Fill from order</button><button class="btn sm" type="button" id="newClient">New client (blank)</button></div>
+        <p class="note">No order message? Fill in step 2 by hand.</p>
+      </section>
+
       <section class="card" id="formCard">
         <div class="step">Step 1 · Birth details</div>
         <h2>Janam details</h2>
@@ -200,25 +215,6 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         </form>
       </section>
 
-      <!-- ADMIN STUDIO -->
-      <section class="card admin hide" id="adminCard">
-        <div class="step" style="color:#f19a86">Admin · visible only on your device</div>
-        <h2>Report studio</h2>
-        <p class="sub">Cast the client's chart on the left, add their questions here, then generate the AI report.</p>
-        <details style="margin-bottom:14px"><summary style="cursor:pointer;color:var(--gold2);font-size:14px">Paste an order from WhatsApp (auto-fills everything)</summary>
-          <textarea id="orderPaste" rows="5" style="margin-top:10px" placeholder="Paste the full WhatsApp order message here"></textarea>
-          <button class="btn sm" type="button" id="parseBtn" style="margin-top:8px">Fill from order</button>
-        </details>
-        <div class="row r2">
-          <div class="f"><label for="aPhone">Client WhatsApp</label><input id="aPhone" inputmode="tel" placeholder="9198xxxxxxxx"></div>
-          <div class="f"><label for="aEmail">Client email</label><input id="aEmail" type="email" placeholder="client@email.com"></div>
-        </div>
-        <div class="f"><label for="aQs">Client questions (one per line, optional)</label><textarea id="aQs" rows="4" placeholder="When will my career stabilise?&#10;Is 2027 good for marriage?"></textarea></div>
-        <div class="f"><label for="aNotes">Your private notes for the AI (optional)</label><textarea id="aNotes" rows="2" placeholder="e.g. Keep remedies simple; client prefers Hindi terms"></textarea></div>
-        <div class="btns"><button class="btn pri" type="button" id="genBtn">Generate report</button><button class="btn sm" type="button" id="setBtn">AI settings</button><button class="btn sm" type="button" id="lockBtn">Lock admin</button></div>
-        <div class="status err hide" id="aiErr" role="alert"></div>
-        <div class="sec"><h3>Saved reports</h3><div class="hist" id="hist"><p class="note">Reports you generate are kept on this device.</p></div></div>
-      </section>
     </div>
 
     <!-- RIGHT -->
@@ -251,6 +247,22 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         <div class="sec"><h3>Vimshottari Mahadasha</h3><div id="dashaNow" class="status"></div><div class="dasha" id="dasha"></div></div>
         <div class="sec"><h3>Current Gochara (transits)</h3><div class="scroll"><table id="ttab"></table></div><div class="kv" id="yogas" style="margin-top:8px"></div></div>
         <p class="note" id="tobNote"></p>
+      </section>
+
+      <!-- ADMIN · step 4 -->
+      <section class="card admin admin-only" id="adminGen">
+        <div class="step">4 · Questions &amp; report</div>
+        <h2>Generate the report</h2>
+        <p class="sub" id="genStatus">Cast the client's chart in step 2 first.</p>
+        <div class="row r2">
+          <div class="f"><label for="aPhone">Client WhatsApp</label><input id="aPhone" inputmode="tel" placeholder="98xxxxxxxx"></div>
+          <div class="f"><label for="aEmail">Client email</label><input id="aEmail" type="email" placeholder="client@email.com"></div>
+        </div>
+        <div class="f"><label for="aQs">Client questions (one per line, optional)</label><textarea id="aQs" rows="4" placeholder="When will my career stabilise?&#10;Is 2027 good for marriage?"></textarea></div>
+        <div class="f"><label for="aNotes">Your notes for the AI (optional)</label><textarea id="aNotes" rows="2" placeholder="e.g. Keep remedies simple; use Hindi terms"></textarea></div>
+        <p class="note" style="margin:0 0 12px">Every report includes the birth chart, all 12 areas of life, lifetime outlook, current Dasha, answers and remedies. Takes about a minute.</p>
+        <button class="btn pri full" type="button" id="genBtn">Generate report</button>
+        <div class="status err hide" id="aiErr" role="alert"></div>
       </section>
 
       <section class="card hide" id="askCard">
@@ -305,10 +317,16 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
       </section>
 
       <section class="card hide" id="reportCard">
-        <div class="step" style="color:#f19a86">Admin · generated report</div>
+        <div class="step">5 · Send report</div>
         <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 id="rTitle">Report</h2>
           <div class="btns"><button class="btn sm" type="button" id="rCopy">Copy</button><a class="btn sm wa" id="rWa" href="#" target="_blank" rel="noopener">WhatsApp client</a><a class="btn sm" id="rMail" href="#">Email</a><button class="btn sm" type="button" id="rPrint">Print / PDF</button></div></div>
         <div class="prose" id="rBody"></div>
+      </section>
+
+      <section class="card admin-only" id="savedCard">
+        <div class="step">Saved reports</div>
+        <h2>On this device</h2>
+        <div class="hist" id="hist" style="margin-top:12px"><p class="note">Reports you generate are kept on this device.</p></div>
       </section>
     </div>
   </div>
@@ -726,7 +744,8 @@ $('birthForm').addEventListener('submit', e => {
   birth = { name, gender: $('gd').value, dob, tob, tobUnknown, placeLabel: $('pob').value.trim(), lat: place.lat, lon: place.lon, tz: place.tz };
   store.set('jy_last', { birth, place });
   renderChart();
-  if (window.innerWidth < 980) $('chartCard').scrollIntoView({ behavior: 'smooth' });
+  if (isAdmin()) paintGen();
+  if (window.innerWidth < 980 || isAdmin()) $('chartCard').scrollIntoView({ behavior: 'smooth' });
 });
 $('copyChart').addEventListener('click', () => chart && copyText(chartSummary(chart, birth) + `\nPlanets: ${chart.planets.map(p => `${p.abbr} ${AS.SHORT[p.sign]} ${p.deg}`).join(', ')}`));
 
@@ -808,13 +827,20 @@ $('newAsk').addEventListener('click', () => { $('doneCard').classList.add('hide'
 
 /* ---------------- admin ---------------- */
 const isAdmin = () => { try { return sessionStorage.getItem('jy_admin') === '1'; } catch (e) { return false; } };
+function paintGen() {
+  $('genStatus').textContent = chart ? `Chart ready for ${birth.name}. Add the questions, then generate.` : 'Cast the client’s chart in step 2 first.';
+  $('genBtn').disabled = !chart;
+}
 function showAdmin(on) {
-  $('adminCard').classList.toggle('hide', !on); document.body.classList.toggle('admin-on', on);
+  document.body.classList.toggle('admin-on', on);
   $('castBtn').textContent = on ? 'Cast client chart' : 'Generate my free Kundli';
-  $('formCard').querySelector('.step').textContent = on ? 'Admin · Client birth details' : 'Step 1 · Birth details';
+  $('formCard').querySelector('.step').textContent = on ? '2 · Client birth details' : 'Step 1 · Birth details';
+  $('formCard').querySelector('h2').textContent = on ? 'Client details' : 'Janam details';
+  $('chartCard').querySelector('.step').textContent = on ? '3 · Client chart' : 'Step 2 · Your free chart';
+  paintGen();
   if (on) renderHist();
 }
-function askPin() { if (isAdmin()) { showAdmin(true); $('adminCard').scrollIntoView({ behavior: 'smooth' }); return; } $('pin').value = ''; $('pinDlg').showModal(); }
+function askPin() { if (isAdmin()) { showAdmin(true); $('adminTop').scrollIntoView({ behavior: 'smooth' }); return; } $('pin').value = ''; $('pinDlg').showModal(); }
 const hexB = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
 const bHex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
 async function verifyPin(pin) {   // PBKDF2-SHA256; only the salted hash ships with the site
@@ -834,7 +860,7 @@ $('pinForm').addEventListener('submit', async e => {
     if (await verifyPin($('pin').value)) {
       store.set('jy_pinfail', { n: 0, until: 0 });
       try { sessionStorage.setItem('jy_admin', '1'); } catch (_) {}
-      $('pinDlg').close(); showAdmin(true); toast('Admin studio unlocked'); $('adminCard').scrollIntoView({ behavior: 'smooth' });
+      $('pinDlg').close(); showAdmin(true); toast('Admin studio unlocked'); window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       const n = f.n + 1; store.set('jy_pinfail', { n: n >= 5 ? 0 : n, until: n >= 5 ? Date.now() + 10 * 60000 : 0 });
       toast(n >= 5 ? 'Too many attempts. Locked for 10 minutes' : 'Wrong PIN'); $('pin').select();
@@ -874,6 +900,13 @@ $('sTest').addEventListener('click', async () => {
 });
 $('sSave').addEventListener('click', () => { store.set('jy_ai', { prov: $('sProv').value, key: $('sKey').value.trim(), model: $('sModel').value.trim() }); toast('AI settings saved on this device'); });
 
+$('newClient').addEventListener('click', () => {
+  ['nm', 'dob', 'tob', 'pob', 'aPhone', 'aEmail', 'aQs', 'aNotes', 'orderPaste'].forEach(id => $(id).value = '');
+  $('tobU').checked = false; $('tob').disabled = false; place = null; chart = null; birth = null; syncPh();
+  $('coordLine').innerHTML = '<span>Coordinates fill in automatically when you pick a place.</span>';
+  ['chartCard', 'reportCard'].forEach(id => $(id).classList.add('hide')); $('aiErr').classList.add('hide'); paintGen();
+  $('formCard').scrollIntoView({ behavior: 'smooth' }); $('nm').focus();
+});
 $('parseBtn').addEventListener('click', () => {
   const t = $('orderPaste').value, g = k => { const m = t.match(new RegExp('^\\s*' + k + ':\\s*(.+)$', 'mi')); return m ? m[1].trim() : ''; };
   if (!g('Name')) return toast('Could not read this order');
@@ -920,13 +953,13 @@ async function geminiModels(key) {
 }
 function rankFlash(list) {   // best Flash first, Flash-Lite as last resort
   const ok = list.filter(n => /flash/i.test(n) && !/(image|tts|audio|live|embed|8b)/i.test(n));
-  const score = n => { const v = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0); return v * 10 + (/latest/.test(n) ? 1 : 0) - (/preview|exp/.test(n) ? 3 : 0) - (/lite/.test(n) ? 100 : 0); };
+  const score = n => { const v = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0); return v * 10 + (/latest/.test(n) ? 1 : 0) - (/preview|exp/.test(n) ? 8 : 0) - (/lite/.test(n) ? 100 : 0); };
   return ok.sort((a, b) => score(b) - score(a));
 }
 const pickFlash = list => rankFlash(list)[0] || null;
 function aiHint(m) {
   if (/API key not valid|API_KEY_INVALID|invalid x-api-key|authentication/i.test(m)) return 'The key was rejected. Copy it again from AI Studio (no spaces) and paste it in AI settings.';
-  if (/429|quota|RESOURCE_EXHAUSTED|rate/i.test(m)) return 'Free-tier limit reached. Wait a while (daily quota resets at 1:30 PM IST) or enable billing on the key’s Google project.';
+  if (/429|quota|RESOURCE_EXHAUSTED|rate/i.test(m)) return 'Free-tier limit reached on every model tried. Wait a while (daily quota resets at 1:30 PM IST) or enable billing on the key’s Google project.';
   if (/referer|referrer|PERMISSION_DENIED|403/i.test(m)) return 'The key has restrictions. In Google Cloud console → Credentials, allow your site (e.g. https://shashank-labs.github.io/*) or remove the restriction.';
   if (/\b50[03]\b|high demand|overloaded|UNAVAILABLE/i.test(m)) return 'Google’s servers were busy for every model tried. This is temporary: wait 5–10 minutes and tap Generate again. Nothing is wrong with your key.';
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'The request was blocked before reaching Google. Check your internet, and turn off any ad-blocker or data-saver for this site.';
@@ -961,13 +994,14 @@ async function callAI(prompt) {
       model = pick; switched = true; store.set('jy_ai', { ...s, model: pick }); toast(`Switched to model ${pick}`); continue;
     }
     if (cfg && r.status === 400 && /output.?tokens/i.test(msg)) { cfg = null; continue; }
-    if (r.status >= 500 && ++busy >= 2) {   // this model is overloaded: try the next-best model the key can use
+    const quota0 = r.status === 429 && /limit: ?0\b|free_tier|per ?day|PerDay/i.test(msg);
+    if ((r.status >= 500 || r.status === 429) && (quota0 || ++busy >= 2)) {   // model busy or out of free quota: try the next-best model the key can use
       models = models || await geminiModels(s.key).catch(() => []);
       const alt = rankFlash(models).find(n => !tried.has(n));
-      if (alt) { tried.add(alt); model = alt; busy = 0; delay = 1500; toast(`Model busy, trying ${alt}`); continue; }
+      if (alt) { tried.add(alt); model = alt; busy = 0; delay = 1500; toast(`${r.status === 429 ? 'Quota used up' : 'Model busy'} on that model, trying ${alt}`); continue; }
     }
     if ((r.status === 429 || r.status >= 500) && a < 8) { await new Promise(res => setTimeout(res, delay)); delay = Math.min(delay * 2, 8000); continue; }
-    throw new Error(`Gemini ${r.status}: ${msg || 'request failed'}`);
+    throw new Error(`Gemini ${r.status} (${model}, tried: ${[...tried].join(', ')}): ${msg || 'request failed'}`);
   }
 }
 let report = null;
