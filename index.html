@@ -96,6 +96,8 @@ td.n{white-space:nowrap}
 .dasha div{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;padding:6px 10px;border-radius:10px}
 .dasha div.now{background:rgba(212,175,55,.14);border:1px solid var(--line2)}
 .dasha i{display:block;height:6px;border-radius:9px;background:rgba(212,175,55,.35)}
+.kleg{max-width:440px;margin:8px auto 0}
+.locked{border-style:dashed;margin-top:8px}tr.nowrow td{background:rgba(212,175,55,.12)}
 .dasha small{color:var(--mut);white-space:nowrap}
 .sec{margin-top:22px}.sec h3{margin-bottom:8px}
 .note{font-size:13px;color:var(--mut);margin-top:10px}
@@ -232,20 +234,23 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
           <div><h2 id="cName">—</h2><p class="sub" id="cMeta" style="margin-bottom:0"></p></div>
           <button class="btn sm" type="button" id="copyChart">Copy summary</button>
         </div>
+        <div class="sec"><h3>1. Birth chart details</h3>
         <div class="pillars" id="pillars"></div>
         <div class="kwrap">
           <div>
             <div class="tabs" role="tablist"><button type="button" class="on" data-st="north">North Indian</button><button type="button" data-st="south">South Indian</button></div>
             <div id="kundli"></div>
           </div>
-          <div>
-            <h3>Panchang at birth</h3>
-            <div class="kv" id="panchang"></div>
-          </div>
+          <div><h3 style="font-size:18px">Panchang at birth</h3><div class="kv" id="panchang"></div></div>
+        </div></div>
+        <div class="sec"><h3>2. Graha positions</h3><div class="scroll"><table id="ptab"></table></div></div>
+        <div class="sec"><h3>3. 12 Bhavas</h3><div class="scroll"><table id="htab"></table></div></div>
+        <div class="sec"><h3>4. Lifetime Vimshottari Mahadasha</h3><div id="dashaNow" class="status"></div><div class="scroll"><table id="mtab"></table></div></div>
+        <div class="sec"><h3>5. Chart overview</h3><div class="prose" id="overview"></div></div>
+        <div class="sec"><h3>6. Answers to your questions</h3>
+          <p class="note" style="margin-top:0">Ask the Acharya below. Your answers come with this full chart, on WhatsApp.</p>
+          <div class="status locked"><b style="color:var(--gold2)">Detailed life report · ₹101</b><br>Everything above, plus: analysis of all 12 areas of life · lifetime outlook Dasha by Dasha · current Dasha and transits · Sade Sati and Mangal dosha · personal remedies (Upayas).</div>
         </div>
-        <div class="sec"><h3>Graha positions</h3><div class="scroll"><table id="ptab"></table></div></div>
-        <div class="sec"><h3>Vimshottari Mahadasha</h3><div id="dashaNow" class="status"></div><div class="dasha" id="dasha"></div></div>
-        <div class="sec"><h3>Current Gochara (transits)</h3><div class="scroll"><table id="ttab"></table></div><div class="kv" id="yogas" style="margin-top:8px"></div></div>
         <p class="note" id="tobNote"></p>
       </section>
 
@@ -271,6 +276,7 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         <p class="sub">Each answer is prepared personally from your chart and sent on WhatsApp during <span class="hrsLbl"></span>.</p>
         <div class="plans" id="plans"></div>
         <div id="qBox"></div>
+        <div class="f"><label for="cLang">Report language *</label><select id="cLang"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option></select></div>
         <div class="row r2">
           <div class="f"><label for="cEmail">Your email *</label><input id="cEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
           <div class="f"><label for="cPhone">Your WhatsApp number *</label><input id="cPhone" inputmode="tel" autocomplete="tel" placeholder="98xxxxxxxx"></div>
@@ -368,9 +374,9 @@ const CONFIG = {
   ADMIN_PIN_HASH: '__ADMIN_PIN_HASH__',   // filled in at deploy from your ADMIN_PIN secret — do not put the PIN here
   HOURS: { open: 10, close: 18, label: '10 AM – 6 PM IST' },
   PLANS: [
-    { id: 'q1', title: '1 question', questions: 1, mrp: 110, price: 11, note: 'One focused answer' },
-    { id: 'q2', title: '2 questions', questions: 2, mrp: 200, price: 21, note: 'Two detailed answers' },
-    { id: 'q3', title: '3 questions', questions: 3, mrp: 500, price: 51, note: 'Three answers + remedies' }
+    { id: 'q2', title: '2 questions', questions: 2, mrp: 200, price: 21, scope: 'questions', note: 'Chart overview + 2 detailed answers, with your full chart' },
+    { id: 'q3', title: '3 questions', questions: 3, mrp: 500, price: 51, scope: 'questions', note: 'Chart overview + 3 detailed answers, with your full chart' },
+    { id: 'full', title: 'Full life report + 3 questions', questions: 3, mrp: 1010, price: 101, scope: 'full', note: 'Everything, plus all 12 areas of life, lifetime outlook, current Dasha & transits, Sade Sati, Mangal dosha and remedies' }
   ]
 };
 </script>
@@ -632,6 +638,7 @@ const NH = [ // polygon, label point, sign-number point
   ['200,400 100,300 200,200 300,300', [200, 272], [200, 220]], ['200,400 300,300 400,400', [300, 352], [300, 316]], ['400,400 300,300 400,200', [370, 300], [314, 300]],
   ['400,200 300,300 200,200 300,100', [300, 172], [218, 200]], ['400,200 300,100 400,0', [370, 100], [314, 100]], ['400,0 300,100 200,0', [300, 28], [300, 86]]
 ];
+const kLegend = st => `<p class="note kleg">${st === 'north' ? 'How to read: numbers are rashis (1 Mesha … 12 Meena). The top diamond is always the 1st house (Lagna); count anticlockwise, so the bottom diamond is the 7th house.' : 'How to read: rashis are fixed in each box; the red mark is the Lagna (1st house). Count houses clockwise from it.'}</p>`;
 function plabel(p) { return `${p.abbr}${p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? 'ᴿ' : ''} ${Math.floor(p.lon % 30)}°`; }
 function kundliSVG(c, st) {
   const ls = c.asc.sign, byHouse = Array.from({ length: 12 }, () => []);
@@ -663,7 +670,7 @@ function kundliSVG(c, st) {
 }
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
   style = b.dataset.st; document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  if (chart) $('kundli').innerHTML = kundliSVG(chart, style);
+  if (chart) $('kundli').innerHTML = kundliSVG(chart, style) + kLegend(style);
 }));
 
 /* ---------------- cast & render ---------------- */
@@ -706,6 +713,21 @@ Current transits (today ${fmtDate(Date.now())}): ${c.transits.map(t => `${t.name
 Sade Sati status: ${c.sadeSati}
 Mars placement: house ${c.manglik.house} (${c.manglik.is ? 'Mangal dosha by lagna' : 'no Mangal dosha by lagna'})`;
 }
+const my = ms => new Date(ms).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+const ORD = n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
+function chartOverview(c) {   // a plain-language summary built only from the computed chart
+  const P = c.P, L = P[c.lagnaLord], M = P.Moon, dig = p => p.dignity ? ` (${p.dignity.toLowerCase()})` : '';
+  const strong = c.planets.filter(p => p.dignity === 'Exalted' || p.dignity === 'Own sign').map(p => `${p.name} ${p.dignity === 'Exalted' ? 'exalted' : 'in its own sign'} in ${SN[p.sign]}`);
+  const weak = c.planets.filter(p => p.dignity === 'Debilitated').map(p => `${p.name} debilitated in ${SN[p.sign]}`);
+  const busy = houses(c).filter(x => x.occ.length >= 2).map(x => `the ${ORD(x.h)} house (${x.area.split(',').slice(0, 2).join(' &').toLowerCase()}) holds ${x.occ.join(', ')}`);
+  const p = [];
+  p.push(`<p>You have <b>${esc(SN[c.asc.sign])} (${esc(SE[c.asc.sign])}) Lagna</b> at ${esc(c.asc.deg)} in ${esc(c.asc.nak.name)} nakshatra. Its lord, ${esc(c.lagnaLord)}, sits in the ${ORD(L.house)} house in ${esc(SN[L.sign])}${esc(dig(L))}.</p>`);
+  p.push(`<p>Your Moon is in <b>${esc(SN[M.sign])}</b>${esc(dig(M))}, in <b>${esc(M.nak.name)} nakshatra, pada ${M.nak.pada}</b>. Its lord ${esc(M.nak.lord)} began your Vimshottari Dasha cycle. The Sun is in ${esc(SN[P.Sun.sign])} in the ${ORD(P.Sun.house)} house.</p>`);
+  if (strong.length || weak.length) p.push(`<p>${strong.length ? `Strong placements: ${esc(strong.join('; '))}. ` : ''}${weak.length ? `Needs care: ${esc(weak.join('; '))}.` : ''}</p>`);
+  if (busy.length) p.push(`<p>Planetary focus: ${esc(busy.join('; '))}.</p>`);
+  if (c.md) p.push(`<p>You are now in <b>${esc(c.md.lord)} Mahadasha</b> with ${esc(c.ad.lord)} Antardasha, running till ${fmtDate(c.ad.end)}.</p>`);
+  return p.join('');
+}
 function renderChart() {
   const c = chart, b = birth, P = c.P;
   $('emptyCard').classList.add('hide'); $('chartCard').classList.remove('hide'); $('askCard').classList.remove('hide');
@@ -714,17 +736,16 @@ function renderChart() {
   const pill = (k, v, s) => `<div class="pill"><span>${k}</span><b>${esc(v)}</b><small>${esc(s)}</small></div>`;
   $('pillars').innerHTML = pill('Lagna', SN[c.asc.sign], `${SE[c.asc.sign]} ${c.asc.deg}`) + pill('Chandra Rashi', SN[P.Moon.sign], `${SE[P.Moon.sign]} ${P.Moon.deg}`)
     + pill('Janma Nakshatra', P.Moon.nak.name, `Pada ${P.Moon.nak.pada} · lord ${P.Moon.nak.lord}`) + pill('Surya Rashi', SN[P.Sun.sign], `${SE[P.Sun.sign]} ${P.Sun.deg}`);
-  $('kundli').innerHTML = kundliSVG(c, style);
+  $('kundli').innerHTML = kundliSVG(c, style) + kLegend(style);
   const kv = a => a.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
   $('panchang').innerHTML = kv([['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Nakshatra', c.panchang.nakshatra], ['Yoga', c.panchang.yoga], ['Lagna lord', c.lagnaLord], ['Rashi lord', c.moonLord], ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']]);
   $('ptab').innerHTML = `<thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>House</th></tr></thead><tbody>` + c.planets.map(p =>
     `<tr><td class="n"><b>${p.name}</b>${p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? '<span class="tag r">R</span>' : ''}</td><td>${SN[p.sign]}${p.dignity ? `<span class="tag">${p.dignity}</span>` : ''}</td><td class="n">${p.deg}</td><td>${p.nak.name} ${p.nak.pada}</td><td class="n">${p.house}</td></tr>`).join('') + '</tbody>';
-  const now = Date.now(), mds = c.vim.list.filter(x => x.end > c.utcMs).slice(0, 9), tot = mds.length ? mds[mds.length - 1].end - mds[0].start : 1;
-  $('dashaNow').innerHTML = c.md ? `Running now: <b style="color:var(--gold2)">${c.md.lord} Mahadasha</b> → <b style="color:var(--gold2)">${c.ad.lord} Antardasha</b>, till ${fmtDate(c.ad.end)}. Balance at birth: ${c.vim.balanceYears.toFixed(1)} years of ${c.vim.list[0].lord}.` : 'Dasha period outside computed range.';
-  $('dasha').innerHTML = mds.map(x => `<div class="${x === c.md ? 'now' : ''}"><b>${x.lord}</b><i style="width:${Math.max(6, (x.end - x.start) / tot * 100 * 2.2)}%"></i><small>${new Date(Math.max(x.start, c.utcMs)).getFullYear()} – ${new Date(x.end).getFullYear()}</small></div>`).join('');
-  $('ttab').innerHTML = `<thead><tr><th>Graha</th><th>Transit rashi</th><th>From Moon</th><th>From Lagna</th></tr></thead><tbody>` + c.transits.map(t =>
-    `<tr><td class="n"><b>${t.name}</b>${t.retro && t.name !== 'Rahu' && t.name !== 'Ketu' ? '<span class="tag r">R</span>' : ''}</td><td>${SN[t.sign]} ${t.deg}</td><td class="n">${t.fromMoon}</td><td class="n">${t.fromLagna}</td></tr>`).join('') + '</tbody>';
-  $('yogas').innerHTML = kv([['Shani Sade Sati', c.sadeSati], ['Mangal dosha (from Lagna)', c.manglik.is ? `Present · Mars in house ${c.manglik.house}` : `Not present · Mars in house ${c.manglik.house}`]]);
+  const row = a => `<tr>${a.map(x => `<td>${esc(x)}</td>`).join('')}</tr>`;
+  $('htab').innerHTML = `<thead><tr><th>House</th><th>Area</th><th>Rashi</th><th>Lord in</th><th>Planets</th></tr></thead><tbody>` + houses(c).map(x => row([`${x.h} ${x.nm}`, x.area.split(', ').slice(0, 2).join(', '), SN[x.sign], `${x.lord} → ${x.lordHouse}`, x.occ.join(', ') || '—'])).join('') + '</tbody>';
+  $('dashaNow').innerHTML = c.md ? `Running now: <b style="color:var(--gold2)">${c.md.lord} Mahadasha</b> → <b style="color:var(--gold2)">${c.ad.lord} Antardasha</b>, till ${fmtDate(c.ad.end)}.` : 'Dasha period outside computed range.';
+  $('mtab').innerHTML = `<thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Age</th></tr></thead><tbody>` + lifeDashas(c).map(x => `<tr class="${x === c.md ? 'nowrow' : ''}"><td><b>${x.lord}</b>${x === c.md ? '<span class="tag">now</span>' : ''}</td><td class="n">${my(Math.max(x.start, c.utcMs))}</td><td class="n">${my(x.end)}</td><td class="n">${Math.floor(x.a0)}–${Math.floor(x.a1)}</td></tr>`).join('') + '</tbody>';
+  $('overview').innerHTML = chartOverview(c);
   $('tobNote').textContent = b.tobUnknown ? 'Birth time not known: Lagna and houses use 12:00 noon and may be off. The Moon sign, Nakshatra and Dasha are more dependable; read the chart from the Moon (Chandra Kundli).' : '';
   renderPlans();
 }
@@ -754,7 +775,7 @@ let plan = null, order = null;
 function renderPlans() {
   $('plans').innerHTML = CONFIG.PLANS.map(p => `<button type="button" class="plan ${plan && plan.id === p.id ? 'on' : ''}" data-id="${esc(p.id)}" aria-pressed="${plan && plan.id === p.id}">
     <span class="off">${Math.round((1 - p.price / p.mrp) * 100)}% off</span><h4>${esc(p.title)}</h4>
-    <div class="pr"><b>₹${p.price}</b><s>₹${p.mrp}</s></div><p>${esc(p.note)}</p></button>`).join('');
+    <div class="pr"><b>₹${p.price.toLocaleString('en-IN')}</b><s>₹${p.mrp.toLocaleString('en-IN')}</s></div><p>${esc(p.note)}</p></button>`).join('');
 }
 $('plans').addEventListener('click', e => {
   const b = e.target.closest('.plan'); if (!b) return;
@@ -763,7 +784,7 @@ $('plans').addEventListener('click', e => {
   $('qBox').innerHTML = Array.from({ length: plan.questions }, (_, i) => `<div class="f"><label for="q${i}">Question ${i + 1} *</label><textarea id="q${i}" rows="2" maxlength="600" placeholder="${['e.g. When will I get a stable job?', 'e.g. Is 2027 favourable for marriage?', 'e.g. Should I start my own business?', 'e.g. How is my health in the coming Saturn period?', 'e.g. Which remedy suits me most?'][i % 5]}">${esc(prev[i] || '')}</textarea></div>`).join('');
   $('q0').focus();
 });
-const last = store.get('jy_contact', {}); if (last.email) $('cEmail').value = last.email; if (last.phone) $('cPhone').value = last.phone;
+const last = store.get('jy_contact', {}); if (last.email) $('cEmail').value = last.email; if (last.phone) $('cPhone').value = last.phone; if (last.lang) $('cLang').value = last.lang;
 const emailOk = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
 $('proceed').addEventListener('click', () => {
   if (!chart) return toast('Generate your Kundli first');
@@ -773,9 +794,9 @@ $('proceed').addEventListener('click', () => {
   const email = $('cEmail').value.trim(), phone = $('cPhone').value.trim();
   if (!emailOk(email)) return toast('Enter a valid email'), $('cEmail').focus();
   if (digits(phone).length < 10) return toast('Enter a valid WhatsApp number'), $('cPhone').focus();
-  store.set('jy_contact', { email, phone });
+  store.set('jy_contact', { email, phone, lang: $('cLang').value });
   const d = new Date(), id = `ND${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-  order = { id, plan, qs, email, phone };
+  order = { id, plan, qs, email, phone, lang: $('cLang').value };
   const upi = `upi://pay?pa=${encodeURIComponent(CONFIG.UPI_ID)}&pn=${encodeURIComponent(CONFIG.PAYEE_NAME)}&am=${plan.price.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Jyotish ' + id)}`;
   $('payAmt').textContent = `₹${plan.price}`; $('payPlan').textContent = `${plan.title} · was ₹${plan.mrp}`;
   $('upiId').textContent = CONFIG.UPI_ID; $('upiLink').href = upi; $('ordId').textContent = id; $('pEmail').value = email;
@@ -791,6 +812,8 @@ function orderMessage() {
   return `*New Jyotish consultation*
 Order: ${o.id}
 Plan: ${o.plan.title} – Rs ${o.plan.price}
+Report type: ${o.plan.scope === 'full' ? 'Full life report' : 'Answers only'}
+Language: ${o.lang === 'hi' ? 'Hindi' : 'English'}
 UTR: ${o.utr || 'not given'}
 Email: ${o.email}
 WhatsApp: ${o.phone}
@@ -816,7 +839,7 @@ $('sendWa').addEventListener('click', () => {
     : 'WhatsApp opened with your birth details, questions and UTR filled in. Just tap send in that chat.';
   $('dShot').classList.toggle('hide', !later);
   $('payCard').classList.add('hide'); $('doneCard').classList.remove('hide');
-  $('dName').textContent = birth.name.split(' ')[0]; $('dOrd').textContent = order.id; $('dPlan').textContent = `${order.plan.title} · ₹${order.plan.price}`;
+  $('dName').textContent = birth.name.split(' ')[0]; $('dOrd').textContent = order.id; $('dPlan').textContent = `${order.plan.title} · ₹${order.plan.price} · ${order.lang === 'hi' ? 'हिन्दी' : 'English'}`;
   const s = hoursState();
   $('dHours').classList.toggle('on', s.open);
   $('dHours').innerHTML = s.open ? `We're open now (${esc(CONFIG.HOURS.label)}). Expect your report on WhatsApp and email today.`
@@ -1012,7 +1035,7 @@ function chartDetailsHTML(c, b) {
   const kv = a => `<div class="kv">${a.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
   return `<h2>Birth chart details</h2>
   <p>${esc(b.name)} · ${esc(b.gender)} · ${esc(b.dob)} · ${b.tobUnknown ? 'time not known (12:00 used)' : esc(t12(b.tob))} · ${esc(b.placeLabel)} · ${b.lat.toFixed(2)}, ${b.lon.toFixed(2)} (${esc(b.tz || offStr(c.offsetMin))})</p>
-  <div class="kwrap"><div>${kundliSVG(c, style)}</div><div>${kv([['Lagna', `${AS.SIGNS[c.asc.sign]} ${c.asc.deg}`], ['Chandra Rashi', `${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}`], ['Janma Nakshatra', `${P.Moon.nak.name} pada ${P.Moon.nak.pada}`], ['Surya Rashi', AS.SIGNS[P.Sun.sign]],
+  <div class="kwrap"><div>${kundliSVG(c, style)}${kLegend(style)}</div><div>${kv([['Lagna', `${AS.SIGNS[c.asc.sign]} ${c.asc.deg}`], ['Chandra Rashi', `${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}`], ['Janma Nakshatra', `${P.Moon.nak.name} pada ${P.Moon.nak.pada}`], ['Surya Rashi', AS.SIGNS[P.Sun.sign]],
     ['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Yoga', c.panchang.yoga], ['Running Dasha', c.md ? `${c.md.lord} / ${c.ad.lord} till ${fmtDate(c.ad.end)}` : '—'], ['Sade Sati', c.sadeSati], ['Mangal dosha', c.manglik.is ? `Present (Mars house ${c.manglik.house})` : 'Not present'], ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']])}</div></div>
   <h3>Graha positions</h3><div class="scroll"><table><thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Note</th></tr></thead><tbody>${c.planets.map(p => row([p.name, SN[p.sign], p.deg, `${p.nak.name} ${p.nak.pada}`, p.house, [p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? 'Retrograde' : '', p.dignity].filter(Boolean).join(', ')])).join('')}</tbody></table></div>
   <h3>12 Bhavas</h3><div class="scroll"><table><thead><tr><th>House</th><th>Area</th><th>Rashi</th><th>Lord in</th><th>Occupants</th></tr></thead><tbody>${houses(c).map(x => row([`${x.h} ${x.nm}`, x.area, SN[x.sign], `${x.lord} → ${x.lordHouse}`, x.occ.join(', ') || '—'])).join('')}</tbody></table></div>
