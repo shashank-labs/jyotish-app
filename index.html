@@ -6,7 +6,7 @@
 <title>Nakshatra Darpan · Kundli & Consultation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Serif+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
@@ -18,7 +18,7 @@
 :root{color-scheme:dark;--bg:#0b0e17;--panel:#131a2b;--panel2:#0f1422;--line:rgba(212,175,55,.22);--line2:rgba(212,175,55,.45);--gold:#d4af37;--gold2:#f1d57a;--ink:#f5f2eb;--mut:#a8a399;--red:#e0573a;--ok:#7fc29b}
 *{box-sizing:border-box;min-width:0}
 html{scroll-padding-top:76px}
-body{margin:0;background:var(--bg) radial-gradient(1200px 600px at 50% -10%,rgba(212,175,55,.10),transparent 60%) no-repeat;color:var(--ink);font:16px/1.55 "Plus Jakarta Sans",system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+body{margin:0;background:var(--bg) radial-gradient(1200px 600px at 50% -10%,rgba(212,175,55,.10),transparent 60%) no-repeat;color:var(--ink);font:16px/1.55 "Plus Jakarta Sans","Noto Sans Devanagari",system-ui,sans-serif;overflow-x:clip;min-height:100vh}
 h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;line-height:1.08;margin:0;text-wrap:balance}
 h1{font-size:clamp(32px,5vw,48px)}h2{font-size:28px;color:var(--ink)}h3{font-size:21px;color:var(--gold2)}
 a{color:var(--gold2)}
@@ -147,6 +147,8 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
 .flow{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0;padding:0;list-style:none;counter-reset:f}.flow li{counter-increment:f;font-size:13px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 10px 3px 6px}.flow li::before{content:counter(f);display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(212,175,55,.18);color:var(--gold2);font-size:11px;font-weight:700;margin-right:6px}
 .status.err{border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08);overflow-wrap:anywhere}
 @media print{
+  #printArea p,#printArea li,#printArea tr,#printArea blockquote,#printArea svg,#printArea .kv div{break-inside:avoid}#printArea h2,#printArea h3{break-after:avoid}
+  #printArea{font-family:Georgia,"Noto Serif Devanagari",serif!important}
   body{background:#fff;color:#111}
   body>*:not(#printArea){display:none!important}
   #printArea{display:block;color:#111;font:12pt/1.55 Georgia,serif;padding:0 8mm}
@@ -185,11 +187,13 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         <textarea id="orderPaste" rows="4" placeholder="Paste the client's full WhatsApp order message here"></textarea>
         <div class="btns" style="margin-top:10px"><button class="btn pri sm" type="button" id="parseBtn">Fill from order</button><button class="btn sm" type="button" id="newClient">New client (blank)</button></div>
         <p class="note">No order message? Fill in step 2 by hand.</p>
+        <div class="status" id="keyStatus" style="font-size:14px"></div>
+        <div class="btns"><label class="btn sm" for="keyFile" style="margin:0">Import key backup</label><input type="file" id="keyFile" accept=".json,application/json,text/plain" hidden><button class="btn sm" type="button" id="keyForget">Remove key from this browser</button></div>
       </section>
 
       <section class="card" id="formCard">
         <div class="step">Step 1 · Birth details</div>
-        <h2>Janam details</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Janam details</h2><button class="btn sm" type="button" id="clearAll">Clear</button></div>
         <p class="sub">Accurate time and place give an accurate Lagna.</p>
         <form id="birthForm" novalidate>
           <div class="f"><label for="nm">Full name *</label><input id="nm" autocomplete="name" placeholder="e.g. Aarav Sharma" required></div>
@@ -213,6 +217,7 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
               <button type="button" class="btn sm" id="manApply">Use these coordinates</button>
             </div>
           </div>
+          <div class="f"><label class="chk" style="color:var(--mut)"><input type="checkbox" id="remember"> Remember my details on this device</label></div>
           <button class="btn pri full" type="submit" id="castBtn">Generate my free Kundli</button>
         </form>
       </section>
@@ -265,7 +270,11 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         </div>
         <div class="f"><label for="aQs">Client questions (one per line, optional)</label><textarea id="aQs" rows="4" placeholder="When will my career stabilise?&#10;Is 2027 good for marriage?"></textarea></div>
         <div class="f"><label for="aNotes">Your notes for the AI (optional)</label><textarea id="aNotes" rows="2" placeholder="e.g. Keep remedies simple; use Hindi terms"></textarea></div>
-        <p class="note" style="margin:0 0 12px">Every report includes the birth chart, all 12 areas of life, lifetime outlook, current Dasha, answers and remedies. Takes about a minute.</p>
+        <div class="row r2">
+          <div class="f"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option></select></div>
+          <div class="f"><label for="scope">Report type</label><select id="scope"><option value="full">Full report (₹101)</option><option value="questions">Answers only + charts (₹21 / ₹51)</option></select></div>
+        </div>
+        <p class="note" style="margin:0 0 12px" id="scopeNote">Every report includes the birth chart, all 12 areas of life, lifetime outlook, current Dasha, answers and remedies. Takes about a minute.</p>
         <button class="btn pri full" type="button" id="genBtn">Generate report</button>
         <div class="status err hide" id="aiErr" role="alert"></div>
       </section>
@@ -276,6 +285,7 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         <p class="sub">Each answer is prepared personally from your chart and sent on WhatsApp during <span class="hrsLbl"></span>.</p>
         <div class="plans" id="plans"></div>
         <div id="qBox"></div>
+        <p class="status hide" id="sealNote" style="font-size:14px">Your questions are sealed before sending. Only the Acharya can open them, even in WhatsApp.</p>
         <div class="f"><label for="cLang">Report language *</label><select id="cLang"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option></select></div>
         <div class="row r2">
           <div class="f"><label for="cEmail">Your email *</label><input id="cEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
@@ -371,6 +381,7 @@ const CONFIG = {
   UPI_ID: 'nehatomar210@kotak',          // your UPI VPA (a business/merchant UPI ID works best)
   PAYEE_NAME: 'NEHA TOMAR',     // exactly as registered on your UPI/bank account (what payers see)
   WHATSAPP: '919643330507',               // your WhatsApp number with country code, digits only
+  SEAL_KEY: '',                           // public key from Report Studio → Secret questions. Empty = questions sent as plain text
   ADMIN_PIN_HASH: '__ADMIN_PIN_HASH__',   // filled in at deploy from your ADMIN_PIN secret — do not put the PIN here
   HOURS: { open: 10, close: 18, label: '10 AM – 6 PM IST' },
   PLANS: [
@@ -551,6 +562,7 @@ const SN = AS.SIGNS.map(s => s.split(' ')[0]);
 const SE = AS.SIGNS.map(s => s.match(/\((.+)\)/)[1]);
 async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('Copied'); } catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); toast('Copied'); } catch (_) { toast('Copy not allowed here'); } a.remove(); } }
 const digits = s => String(s || '').replace(/\D/g, '');
+const forget = (...ks) => ks.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
 const waNum = s => { let d = digits(s); if (d.length === 10) d = '91' + d; return d; };
 
 /* ---------------- business hours ---------------- */
@@ -763,7 +775,7 @@ $('birthForm').addEventListener('submit', e => {
   try { chart = AS.cast({ y, mo, d, h, mi, lat: place.lat, lon: place.lon, tz: place.tz, offsetMin: place.tz ? null : place.offsetMin }); }
   catch (err) { console.error(err); return toast('Could not compute this chart. Check the details.'); }
   birth = { name, gender: $('gd').value, dob, tob, tobUnknown, placeLabel: $('pob').value.trim(), lat: place.lat, lon: place.lon, tz: place.tz };
-  store.set('jy_last', { birth, place });
+  if ($('remember').checked) store.set('jy_last', { birth, place }); else forget('jy_last', 'jy_contact');
   renderChart();
   if (isAdmin()) paintGen();
   if (window.innerWidth < 980 || isAdmin()) $('chartCard').scrollIntoView({ behavior: 'smooth' });
@@ -786,7 +798,18 @@ $('plans').addEventListener('click', e => {
 });
 const last = store.get('jy_contact', {}); if (last.email) $('cEmail').value = last.email; if (last.phone) $('cPhone').value = last.phone; if (last.lang) $('cLang').value = last.lang;
 const emailOk = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
-$('proceed').addEventListener('click', () => {
+$('sealNote').classList.toggle('hide', !CONFIG.SEAL_KEY);
+const b64 = buf => { let s = ''; new Uint8Array(buf).forEach(x => s += String.fromCharCode(x)); return btoa(s); };
+async function seal(text, aad) {   // RSA-OAEP wraps a one-time AES-GCM key; only the Report Studio's private key can open it
+  const spki = Uint8Array.from(atob(CONFIG.SEAL_KEY), c => c.charCodeAt(0));
+  const pub = await crypto.subtle.importKey('spki', spki, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']);
+  const aes = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: new TextEncoder().encode(aad) }, aes, new TextEncoder().encode(text));
+  const ek = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, pub, await crypto.subtle.exportKey('raw', aes));
+  return `ND1.${b64(ek)}.${b64(iv)}.${b64(ct)}`;
+}
+$('proceed').addEventListener('click', async () => {
   if (!chart) return toast('Generate your Kundli first');
   if (!plan) return toast('Choose a plan');
   const qs = [...document.querySelectorAll('#qBox textarea')].map(t => t.value.trim());
@@ -794,9 +817,13 @@ $('proceed').addEventListener('click', () => {
   const email = $('cEmail').value.trim(), phone = $('cPhone').value.trim();
   if (!emailOk(email)) return toast('Enter a valid email'), $('cEmail').focus();
   if (digits(phone).length < 10) return toast('Enter a valid WhatsApp number'), $('cPhone').focus();
-  store.set('jy_contact', { email, phone, lang: $('cLang').value });
+  if ($('remember').checked) store.set('jy_contact', { email, phone, lang: $('cLang').value }); else forget('jy_contact');
   const d = new Date(), id = `ND${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-  order = { id, plan, qs, email, phone, lang: $('cLang').value };
+  order = { id, plan, qs, email, phone, lang: $('cLang').value, sealed: '' };
+  if (CONFIG.SEAL_KEY) {
+    try { order.sealed = await seal(JSON.stringify({ qs }), id); }
+    catch (e) { console.error(e); toast('Could not seal questions on this browser; they will be sent as plain text'); }
+  }
   const upi = `upi://pay?pa=${encodeURIComponent(CONFIG.UPI_ID)}&pn=${encodeURIComponent(CONFIG.PAYEE_NAME)}&am=${plan.price.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Jyotish ' + id)}`;
   $('payAmt').textContent = `₹${plan.price}`; $('payPlan').textContent = `${plan.title} · was ₹${plan.mrp}`;
   $('upiId').textContent = CONFIG.UPI_ID; $('upiLink').href = upi; $('ordId').textContent = id; $('pEmail').value = email;
@@ -821,8 +848,7 @@ WhatsApp: ${o.phone}
 *Birth details*
 ${chartSummary(chart, b)}
 
-*Questions*
-${o.qs.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+${o.sealed ? `*Questions* (sealed, only Nakshatra Darpan can open)\n${o.sealed}` : `*Questions*\n${o.qs.map((q, i) => `${i + 1}. ${q}`).join('\n')}`}
 
 ${o.hasShot ? 'Payment screenshot: I will send it next in this chat.' : 'Payment reference: UTR above.'}`;
 }
@@ -923,6 +949,48 @@ $('sTest').addEventListener('click', async () => {
 });
 $('sSave').addEventListener('click', () => { store.set('jy_ai', { prov: $('sProv').value, key: $('sKey').value.trim(), model: $('sModel').value.trim() }); toast('AI settings saved on this device'); });
 
+const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const getKeys = () => store.get('nd_sealkeys', []);
+function paintKey() {
+  const k = getKeys();
+  $('keyStatus').innerHTML = k.length ? `Sealed questions: <b style="color:var(--gold2)">key imported</b> (${k.length}). This browser can open sealed orders.` : 'Sealed questions: no key in this browser. Import the backup file from Report Studio → Secret questions to open sealed orders here.';
+  $('keyForget').classList.toggle('hide', !k.length);
+}
+async function unseal(token, aad) {
+  const keys = getKeys();
+  if (!keys.length) throw new Error('No sealing key in this browser. Tap “Import key backup” and choose the file from Report Studio.');
+  const [, ek, iv, ct] = token.split('.');
+  for (const k of keys) {
+    try {
+      const priv = await crypto.subtle.importKey('pkcs8', fromB64(k.priv), { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
+      const raw = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, fromB64(ek));
+      const aes = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(iv), additionalData: new TextEncoder().encode(aad || '') }, aes, fromB64(ct));
+      return JSON.parse(new TextDecoder().decode(pt));
+    } catch (_) {}
+  }
+  throw new Error('These questions were sealed with a different key, or the order text was changed. Paste the full original message.');
+}
+$('keyFile').addEventListener('change', async () => {
+  const f = $('keyFile').files[0]; $('keyFile').value = ''; if (!f) return;
+  try {
+    const inc = (JSON.parse(await f.text()).keys || []).filter(k => k.pub && k.priv); if (!inc.length) throw 0;
+    const m = getKeys(); inc.forEach(k => { if (!m.some(x => x.pub === k.pub)) m.push(k); });
+    m.sort((a, b) => b.created - a.created); store.set('nd_sealkeys', m.slice(0, 5)); paintKey(); toast('Key imported into this browser');
+  } catch (_) { toast('That file isn’t a Nakshatra Darpan key backup'); }
+});
+let forgetArm = false;
+$('keyForget').addEventListener('click', () => {
+  if (!forgetArm) { forgetArm = true; $('keyForget').textContent = 'Tap again to remove'; setTimeout(() => { forgetArm = false; $('keyForget').textContent = 'Remove key from this browser'; }, 4000); return; }
+  forgetArm = false; forget('nd_sealkeys'); paintKey(); $('keyForget').textContent = 'Remove key from this browser'; toast('Key removed from this browser');
+});
+function paintScope() {
+  $('scopeNote').textContent = $('scope').value === 'questions'
+    ? 'Birth chart details, Graha positions, 12 Bhavas, lifetime Mahadasha, then the chart overview and answers to each question.'
+    : 'Everything: birth chart tables, chart overview, all 12 areas of life, lifetime outlook, current Dasha, answers and remedies.';
+}
+{ const o = store.get('jy_opts', {}); if (o.lang) $('lang').value = o.lang; if (o.scope) $('scope').value = o.scope; }
+$('scope').addEventListener('change', paintScope); paintScope(); paintKey();
 $('newClient').addEventListener('click', () => {
   ['nm', 'dob', 'tob', 'pob', 'aPhone', 'aEmail', 'aQs', 'aNotes', 'orderPaste'].forEach(id => $(id).value = '');
   $('tobU').checked = false; $('tob').disabled = false; place = null; chart = null; birth = null; syncPh();
@@ -942,9 +1010,18 @@ $('parseBtn').addEventListener('click', () => {
     setPlace({ name: pl, region: '', label: pl, lat: +co[1], lon: +co[2], tz: om ? null : zone, offsetMin: om ? (om[1] === '-' ? -1 : 1) * (+om[2] * 60 + +om[3]) : null });
   }
   $('aEmail').value = g('Email'); $('aPhone').value = g('WhatsApp');
+  const lg = g('Language'), rt = g('Report type'), plan = g('Plan');
+  if (lg) $('lang').value = /hindi|हिन्दी/i.test(lg) ? 'hi' : 'en';
+  if (rt || plan) $('scope').value = /full/i.test(rt || plan) ? 'full' : 'questions';
+  paintScope();
   const qm = t.split(/^\s*\*?Questions\*?\s*$/mi)[1] || '';
   $('aQs').value = qm.split('\n').map(l => l.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(l => l && !/^payment (screenshot|reference)|screenshot attached/i.test(l)).join('\n');
-  syncPh(); $('birthForm').requestSubmit(); toast('Order loaded and chart cast');
+  syncPh(); $('birthForm').requestSubmit();
+  const sealed = t.match(/ND1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/);
+  if (!sealed) return toast('Order loaded and chart cast');
+  $('aQs').value = ''; $('aQs').placeholder = 'Opening sealed questions…';
+  unseal(sealed[0], g('Order')).then(o => { $('aQs').value = (o.qs || []).join('\n'); toast('Order loaded · sealed questions opened'); })
+    .catch(e => { $('aQs').placeholder = 'Sealed questions could not be opened'; $('aiErr').innerHTML = `<b style="color:#f19a86">Sealed questions not opened</b><br>${esc(e.message)}`; $('aiErr').classList.remove('hide'); });
 });
 
 const SYS = `You are an experienced, compassionate Vedic astrologer (Jyotishi) trained in Parashari and Jaimini methods. You write personal consultation reports.
@@ -953,8 +1030,9 @@ Rules:
 - Answer every client question directly, using specific placements, house lords, dasha/antardasha timing and transits, with date windows where the data supports them.
 - Tone: dignified, warm, empowering. Frame difficult placements as karmic lessons with practical guidance. No fear-mongering, no guarantees, no medical, legal or financial instructions; suggest professional help where relevant.
 - Remedies (Upayas): mantras with counts, dana (charity) by weekday, fasting, lifestyle and seva. Gemstones only as optional with the caveat to consult an expert first.
-- Life areas: never predict death, age at death or lifespan figures, and never diagnose illness. For the 8th house speak of transformation, research, inheritance and resilience; for health speak of tendencies and care.
-- Format in Markdown with ALL of these sections, every time, in this order:
+- Life areas: never predict death, age at death or lifespan figures, and never diagnose illness. For the 8th house speak of transformation, research, inheritance and resilience; for health speak of tendencies and care.`;
+const FORMATS = {
+  full: { en: `- Format in Markdown with ALL of these sections, every time, in this order:
 ## 1. Chart overview
 (Lagna, Moon sign, Nakshatra, key yogas, dignities and overall nature of the chart.)
 ## 2. The 12 areas of life
@@ -967,7 +1045,40 @@ Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadas
 ## 5. Answers to your questions
 (One ### heading per question, restating it. Omit this section only if no questions are given.)
 ## 6. Upayas (remedies)
-## Closing blessing  (2–3 lines)`;
+## Closing blessing  (2–3 lines)`,
+    hi: `- Format in Markdown with ALL of these sections, every time, in this order (headings in Hindi exactly as below):
+## 1. कुंडली परिचय
+(लग्न, चंद्र राशि, नक्षत्र, प्रमुख योग, ग्रहों का बल और कुंडली का समग्र स्वभाव।)
+## 2. जीवन के 12 क्षेत्र
+Write one ### heading for each of the 12 houses in order, e.g. "### प्रथम भाव · तनु — स्वयं और स्वास्थ्य". Under each:
+**बल:** one of प्रबल / अच्छा / मिश्रित / सावधानी आवश्यक, with one line why (sign, lord placement, occupants, aspects).
+Then 3–5 sentences: what this area promises, strengths and challenges, and which Mahadasha/Antardasha periods (with ages or years) activate it.
+## 3. जीवनकाल की दिशा
+Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadasha with years and ages). Mark the period running now.
+## 4. वर्तमान दशा और गोचर
+## 5. आपके प्रश्नों के उत्तर
+(One ### heading per question, restating it in Hindi. Omit this section only if no questions are given.)
+## 6. उपाय
+## आशीर्वाद  (2–3 lines)` },
+  questions: { en: `- Format in Markdown with exactly these two sections, in this order (no other sections, no remedies, no closing):
+## Chart overview
+(Two or three paragraphs: Lagna and its lord, Moon sign and nakshatra, key strong and weak placements, the running Mahadasha/Antardasha, and the placements most relevant to the questions.)
+## Answers to your questions
+(One ### heading per question, restating it. Answer each in depth: the relevant houses and their lords, dasha/antardasha timing with date windows, transits, and practical guidance.)`,
+    hi: `- Format in Markdown with exactly these two sections, in this order (headings in Hindi exactly as below; no other sections, no remedies, no closing):
+## कुंडली परिचय
+(दो-तीन अनुच्छेद: लग्न और लग्नेश, चंद्र राशि और नक्षत्र, प्रमुख बलवान व कमज़ोर ग्रह, चल रही महादशा/अंतर्दशा, और प्रश्नों से जुड़े ग्रह-योग।)
+## आपके प्रश्नों के उत्तर
+(One ### heading per question, restating it in Hindi. Answer each in depth: relevant houses and lords, dasha/antardasha timing with date windows, transits, practical guidance.)` }
+};
+const LANG = {
+  en: 'LANGUAGE: Write in clear, warm English. Sanskrit terms may appear with a short English gloss.',
+  hi: 'LANGUAGE: Write the ENTIRE report in Hindi, in Devanagari script — simple, respectful, flowing Hindi (आप form). Use standard Jyotish terms: लग्न, राशि, नक्षत्र, भाव, भावेश, महादशा, अंतर्दशा, गोचर, उपाय, साढ़े साती. Planet names in Hindi (सूर्य, चंद्र, मंगल, बुध, गुरु, शुक्र, शनि, राहु, केतु). Write years and dates in numerals (e.g. 2027, 24 Jan 2029). Mantras in Devanagari.'
+};
+const TASK = {
+  full: 'Prepare a complete personal Vedic astrology report: chart overview, all 12 areas of life, lifetime outlook, current period, answers and remedies.',
+  questions: 'Prepare a focused personal Vedic astrology consultation: a chart overview, then the client\'s questions answered in depth. Write only those two sections — no 12-areas, lifetime outlook, remedies or closing.'
+};
 async function geminiModels(key) {
   const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } });
   const j = await r.json().catch(() => ({}));
@@ -989,12 +1100,12 @@ function aiHint(m) {
   if (/location|region|not available in your country/i.test(m)) return 'The API isn’t available from your network location.';
   return 'Open AI settings and tap “Test key” to check the key and model.';
 }
-async function callAI(prompt) {
+async function callAI(prompt, sys = SYS) {
   const s = getSet(); if (!s.key) { $('setBtn').click(); throw new Error('Add your API key in AI settings first'); }
   let model = s.model || DEF[s.prov];
   if (s.prov === 'claude') {
     const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': s.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model, max_tokens: 16000, system: SYS, messages: [{ role: 'user', content: prompt }] }) });
+      body: JSON.stringify({ model, max_tokens: 16000, system: sys, messages: [{ role: 'user', content: prompt }] }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j?.error?.message || `Claude error ${r.status}`);
     return (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n');
@@ -1002,7 +1113,7 @@ async function callAI(prompt) {
   let delay = 1500, switched = false, cfg = { maxOutputTokens: 16384 }, busy = 0, models = null;
   const tried = new Set([model]);
   for (let a = 0; a < 9; a++) {
-    const body = { systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }] };
+    const body = { systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }] };
     if (cfg) body.generationConfig = cfg;
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.key }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({})), msg = j?.error?.message || '';
@@ -1030,13 +1141,13 @@ async function callAI(prompt) {
 let report = null;
 const md2html = md => { const s = String(md).replace(/</g, '&lt;'); return window.marked ? marked.parse(s) : '<p>' + s.replace(/\n/g, '<br>') + '</p>'; };
 const plain = md => String(md).replace(/^#{1,6}\s*/gm, '').replace(/\*\*(.+?)\*\*/g, '*$1*').replace(/^\s*[-*]\s+/gm, '• ').replace(/\n{3,}/g, '\n\n');
-function chartDetailsHTML(c, b) {
+function chartDetailsHTML(c, b, scope) {
   const P = c.P, row = a => `<tr>${a.map(x => `<td>${esc(x)}</td>`).join('')}</tr>`;
   const kv = a => `<div class="kv">${a.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
   return `<h2>Birth chart details</h2>
   <p>${esc(b.name)} · ${esc(b.gender)} · ${esc(b.dob)} · ${b.tobUnknown ? 'time not known (12:00 used)' : esc(t12(b.tob))} · ${esc(b.placeLabel)} · ${b.lat.toFixed(2)}, ${b.lon.toFixed(2)} (${esc(b.tz || offStr(c.offsetMin))})</p>
   <div class="kwrap"><div>${kundliSVG(c, style)}${kLegend(style)}</div><div>${kv([['Lagna', `${AS.SIGNS[c.asc.sign]} ${c.asc.deg}`], ['Chandra Rashi', `${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}`], ['Janma Nakshatra', `${P.Moon.nak.name} pada ${P.Moon.nak.pada}`], ['Surya Rashi', AS.SIGNS[P.Sun.sign]],
-    ['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Yoga', c.panchang.yoga], ['Running Dasha', c.md ? `${c.md.lord} / ${c.ad.lord} till ${fmtDate(c.ad.end)}` : '—'], ['Sade Sati', c.sadeSati], ['Mangal dosha', c.manglik.is ? `Present (Mars house ${c.manglik.house})` : 'Not present'], ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']])}</div></div>
+    ['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Yoga', c.panchang.yoga], ['Running Dasha', c.md ? `${c.md.lord} / ${c.ad.lord} till ${fmtDate(c.ad.end)}` : '—'], ...(scope === 'questions' ? [] : [['Sade Sati', c.sadeSati], ['Mangal dosha', c.manglik.is ? `Present (Mars house ${c.manglik.house})` : 'Not present']]), ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']])}</div></div>
   <h3>Graha positions</h3><div class="scroll"><table><thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Note</th></tr></thead><tbody>${c.planets.map(p => row([p.name, SN[p.sign], p.deg, `${p.nak.name} ${p.nak.pada}`, p.house, [p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? 'Retrograde' : '', p.dignity].filter(Boolean).join(', ')])).join('')}</tbody></table></div>
   <h3>12 Bhavas</h3><div class="scroll"><table><thead><tr><th>House</th><th>Area</th><th>Rashi</th><th>Lord in</th><th>Occupants</th></tr></thead><tbody>${houses(c).map(x => row([`${x.h} ${x.nm}`, x.area, SN[x.sign], `${x.lord} → ${x.lordHouse}`, x.occ.join(', ') || '—'])).join('')}</tbody></table></div>
   <h3>Lifetime Vimshottari Mahadasha</h3><div class="scroll"><table><thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Age</th></tr></thead><tbody>${lifeDashas(c).map(x => row([x.lord + (x === c.md ? ' (now)' : ''), fmtDate(Math.max(x.start, c.utcMs)), fmtDate(x.end), `${Math.floor(x.a0)}–${Math.floor(x.a1)}`])).join('')}</tbody></table></div>
@@ -1045,7 +1156,7 @@ function chartDetailsHTML(c, b) {
 const reportText = r => `🙏 ${CONFIG.BUSINESS_NAME} · Jyotish report for ${r.name}\n\n${chartSummary(chart, birth)}\nPlanets: ${chart.planets.map(p => `${p.name} ${SN[p.sign]} ${p.deg} (H${p.house})`).join(', ')}\n\n${plain(r.md)}`;
 function showReport(r) {
   report = r; $('reportCard').classList.remove('hide');
-  $('rTitle').textContent = `Report · ${r.name}`; $('rBody').innerHTML = chartDetailsHTML(chart, birth) + md2html(r.md);
+  $('rTitle').textContent = `Report · ${r.name}`; $('rBody').innerHTML = chartDetailsHTML(chart, birth, r.scope) + md2html(r.md);
   const txt = reportText(r);
   $('rWa').href = r.phone ? `https://wa.me/${waNum(r.phone)}?text=${encodeURIComponent(`🙏 Namaste ${r.name.split(' ')[0]}, your Jyotish report from ${CONFIG.BUSINESS_NAME} is ready. Sharing it here.`)}` : '#';
   $('rWa').classList.toggle('hide', !r.phone);
@@ -1055,19 +1166,25 @@ function showReport(r) {
 $('genBtn').addEventListener('click', async () => {
   if (!chart) return toast('Cast the client chart first (left form)');
   const qs = $('aQs').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const lang = $('lang').value, scope = $('scope').value;
+  if (scope === 'questions' && !qs.length) return toast('Add at least one question for an answers-only report'), $('aQs').focus();
   $('aiErr').classList.add('hide');
   const btn = $('genBtn'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Writing report…';
   try {
-    const prompt = `Prepare a complete personal Vedic astrology report: chart overview, all 12 areas of life, lifetime outlook, current period, answers and remedies. Today is ${fmtDate(Date.now())}.
+    const sys = `${SYS}\n${FORMATS[scope][lang]}\n${LANG[lang]}`;
+    const prompt = `${TASK[scope]} Today is ${fmtDate(Date.now())}.
 
 CLIENT CHART (computed):
 ${chartForAI(chart, birth)}
 
 CLIENT QUESTIONS:
-${qs.length ? qs.map((q, i) => `${i + 1}. ${q}`).join('\n') : '(none — omit section 5)'}
-${$('aNotes').value.trim() ? `\nASTROLOGER'S NOTES (follow these): ${$('aNotes').value.trim()}` : ''}`;
-    const md = await callAI(prompt);
-    const r = { id: 'r' + Date.now(), name: birth.name, date: Date.now(), phone: $('aPhone').value.trim(), email: $('aEmail').value.trim(), qs, md, birth, place };
+${qs.length ? qs.map((q, i) => `${i + 1}. ${q}`).join('\n') : '(none — omit the answers section)'}
+${$('aNotes').value.trim() ? `\nASTROLOGER'S NOTES (follow these): ${$('aNotes').value.trim()}` : ''}
+
+Write only the report in Markdown, starting with "${{ full: { en: '## 1. Chart overview', hi: '## 1. कुंडली परिचय' }, questions: { en: '## Chart overview', hi: '## कुंडली परिचय' } }[scope][lang]}".`;
+    store.set('jy_opts', { lang, scope });
+    const md = await callAI(prompt, sys);
+    const r = { id: 'r' + Date.now(), name: birth.name, date: Date.now(), phone: $('aPhone').value.trim(), email: $('aEmail').value.trim(), qs, md, birth, place, lang, scope, notes: $('aNotes').value.trim() };
     const h = store.get('jy_reports', []); h.unshift(r); store.set('jy_reports', h.slice(0, 60)); renderHist();
     showReport(r); toast('Report ready');
   } catch (err) { const m = err.message || 'AI request failed'; $('aiErr').innerHTML = `<b style="color:#f19a86">Report not generated</b><br>${esc(m)}<br><br>${esc(aiHint(m))}`; $('aiErr').classList.remove('hide'); console.error(err); }
@@ -1075,25 +1192,35 @@ ${$('aNotes').value.trim() ? `\nASTROLOGER'S NOTES (follow these): ${$('aNotes')
 });
 function renderHist() {
   const h = store.get('jy_reports', []);
-  $('hist').innerHTML = h.length ? h.map(r => `<div><span><b style="color:var(--gold2)">${esc(r.name)}</b><br><small style="color:var(--mut)">${fmtDate(r.date)} · ${r.qs.length ? `${r.qs.length} question${r.qs.length > 1 ? 's' : ''}` : 'Life report'}</small></span><span class="btns"><button class="btn sm" data-open="${esc(r.id)}">Open</button><button class="btn sm" data-del="${esc(r.id)}" aria-label="Delete">✕</button></span></div>`).join('')
+  $('hist').innerHTML = h.length ? h.map(r => `<div><span><b style="color:var(--gold2)">${esc(r.name)}</b><br><small style="color:var(--mut)">${fmtDate(r.date)} · ${r.scope === 'questions' ? 'Answers only' : 'Full report'}${r.qs && r.qs.length ? ` · ${r.qs.length} question${r.qs.length > 1 ? 's' : ''}` : ''}${r.lang === 'hi' ? ' · हिन्दी' : ''}</small></span><span class="btns"><button class="btn sm" data-open="${esc(r.id)}">Open</button><button class="btn sm" data-del="${esc(r.id)}" aria-label="Delete">✕</button></span></div>`).join('')
     : '<p class="note">Reports you generate are kept on this device.</p>';
 }
 $('hist').addEventListener('click', e => {
   const o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]'), h = store.get('jy_reports', []);
   if (o) { const r = h.find(x => x.id === o.dataset.open); if (r) { if (r.birth) { birth = r.birth; place = r.place; const [y, mo, dd] = r.birth.dob.split('-').map(Number), [hh, mi] = r.birth.tob.split(':').map(Number); chart = AS.cast({ y, mo, d: dd, h: hh, mi, lat: r.birth.lat, lon: r.birth.lon, tz: r.birth.tz, offsetMin: r.birth.tz ? null : r.place && r.place.offsetMin }); renderChart(); } showReport(r); } }
+  if (o) { const r = h.find(x => x.id === o.dataset.open); if (r) { $('aQs').value = (r.qs || []).join('\n'); $('aPhone').value = r.phone || ''; $('aEmail').value = r.email || ''; if (r.lang) $('lang').value = r.lang; if (r.scope) $('scope').value = r.scope; paintScope(); } }
   if (d) { store.set('jy_reports', h.filter(x => x.id !== d.dataset.del)); renderHist(); }
 });
 $('rCopy').addEventListener('click', () => report && copyText(reportText(report)));
 $('rWa').addEventListener('click', () => { if (report) { copyText(reportText(report)); setTimeout(() => toast('Full report copied. Paste it in the chat, or attach the PDF.'), 400); } });
 $('rPrint').addEventListener('click', () => {
   if (!report) return;
-  $('printArea').innerHTML = `<h1>${esc(CONFIG.BUSINESS_NAME)} · Jyotish report</h1>${chartDetailsHTML(chart, birth)}${md2html(report.md)}<p style="font-size:10pt;color:#555">Guidance for reflection; not a substitute for professional advice.</p>`;
+  $('printArea').innerHTML = `<h1>${esc(CONFIG.BUSINESS_NAME)} · Jyotish report</h1>${chartDetailsHTML(chart, birth, report.scope)}${md2html(report.md)}<p style="font-size:10pt;color:#555">Guidance for reflection; not a substitute for professional advice.</p>`;
   try { window.print(); } catch (e) { toast('Printing is blocked here. Use Copy instead.'); }
 });
 
+$('remember').addEventListener('change', () => { if (!$('remember').checked) forget('jy_last', 'jy_contact'); });
+$('clearAll').addEventListener('click', () => {
+  ['nm', 'dob', 'tob', 'pob', 'cEmail', 'cPhone', 'utr', 'mLat', 'mLon'].forEach(id => $(id).value = '');
+  $('gd').value = 'Male'; $('tobU').checked = false; $('tob').disabled = false; $('remember').checked = false; $('shotLater').checked = false; $('cLang').value = 'en';
+  place = null; chart = null; birth = null; plan = null; order = null; $('qBox').innerHTML = ''; syncPh(); forget('jy_last', 'jy_contact');
+  $('coordLine').innerHTML = '<span>Coordinates fill in automatically when you pick a place.</span>';
+  ['chartCard', 'askCard', 'payCard', 'doneCard'].forEach(id => $(id).classList.add('hide')); $('emptyCard').classList.remove('hide');
+  window.scrollTo({ top: 0, behavior: 'smooth' }); toast('All details cleared from this device');
+});
 /* restore last birth details */
 const lb = store.get('jy_last', null);
-if (lb && lb.birth) { const b = lb.birth; $('nm').value = b.name; $('gd').value = b.gender; $('dob').value = b.dob; $('tob').value = b.tob; $('tobU').checked = b.tobUnknown; $('tob').disabled = b.tobUnknown; if (lb.place) setPlace(lb.place); $('pob').value = b.placeLabel; }
+if (lb && lb.birth) { $('remember').checked = true; const b = lb.birth; $('nm').value = b.name; $('gd').value = b.gender; $('dob').value = b.dob; $('tob').value = b.tob; $('tobU').checked = b.tobUnknown; $('tob').disabled = b.tobUnknown; if (lb.place) setPlace(lb.place); $('pob').value = b.placeLabel; }
 syncPh();
 }
 </script>
