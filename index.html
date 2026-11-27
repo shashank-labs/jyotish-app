@@ -276,13 +276,17 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
         <div class="step">Step 4 · Pay by UPI</div>
         <h2>Complete your payment</h2>
         <div class="pay" style="margin-top:14px">
-          <div><div class="qr" id="qr"></div><p class="note" style="text-align:center">Scan with any UPI app</p></div>
+          <div><div class="qr" id="qr"></div><p class="note" style="text-align:center">Scan with any UPI app</p><button class="btn sm full" type="button" id="saveQr">Save QR to phone</button></div>
           <div>
             <div class="amt" id="payAmt">₹0</div>
             <p class="note" id="payPlan" style="margin-top:4px"></p>
             <div class="upi">UPI ID <code id="upiId"></code><button class="btn sm" type="button" id="copyUpi">Copy</button></div>
-            <a class="btn pri full" id="upiLink" href="#">Pay in UPI app</a>
-            <p class="note">Order ID <b id="ordId" style="color:var(--gold2)"></b>. It is added to the payment note.</p>
+            <ol class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.8">
+              <li>Tap <b>Copy</b> next to the UPI ID.</li>
+              <li>Open GPay, PhonePe, Paytm or your bank app → <b>Pay to UPI ID</b>, paste it and pay the amount shown.</li>
+              <li>Or scan the QR from another phone, or tap <b>Save QR to phone</b> and use <b>Scan from gallery</b>.</li>
+            </ol>
+            <p class="note">Order ID <b id="ordId" style="color:var(--gold2)"></b>. Add it in the payment note if your app allows.</p>
           </div>
         </div>
         <div class="sec">
@@ -292,8 +296,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
             <div class="f"><label for="utr">UPI transaction ID / UTR</label><input id="utr" inputmode="numeric" placeholder="12-digit UTR"></div>
             <div class="f"><label for="pEmail">Email for the report *</label><input id="pEmail" type="email" placeholder="you@email.com"></div>
           </div>
-          <div class="f"><label for="shotFile">Payment screenshot (optional if you gave the UTR)</label><input id="shotFile" type="file" accept="image/*"><img class="shot hide" id="shotPrev" alt="Screenshot preview"></div>
-          <div class="f"><label class="chk" style="color:var(--ink);font-size:15px;align-items:flex-start"><input type="checkbox" id="shotLater" style="margin-top:3px"> <span>I'll send the <b style="color:var(--gold2)">payment screenshot on WhatsApp</b> instead</span></label></div>
+          <div class="f"><label for="shotFile">Payment screenshot (not needed if you gave the UTR)</label><input id="shotFile" type="file" accept="image/*"><img class="shot hide" id="shotPrev" alt="Screenshot preview"></div>
           <div class="btns"><button class="btn pri" type="button" id="submitOrder">Submit for review</button><button class="btn sm" type="button" id="backPlans">Change plan</button></div>
           <p class="note">We verify the payment, then prepare your report and email it to you. The report also stays on this site for 7 days.</p>
         </div>
@@ -305,10 +308,9 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
           <h2>Dhanyavaad, <span id="dName"></span></h2>
           <p class="sub">Order <b id="dOrd" style="color:var(--gold2)"></b> · <span id="dPlan"></span></p>
         </div>
-        <div class="status hide" id="dShot" style="border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08)"><b style="color:#f19a86">Next step: send your payment screenshot on WhatsApp.</b><br>Tap the button below and attach the screenshot, quoting your order ID. We cannot verify the payment without it.</div>
         <div class="status" id="dHours"></div>
         <p class="note" id="dNote"></p>
-        <div class="btns" style="margin-top:12px"><a class="btn pri" id="dTrack" href="#report">Check my report</a><a class="btn wa hide" id="waAgain" href="#" target="_blank" rel="noopener">Send screenshot on WhatsApp</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
+        <div class="btns" style="margin-top:12px"><a class="btn pri" id="dTrack" href="#report">Check my report</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
       </section>
     </div>
   </div>
@@ -358,9 +360,6 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
    ================================================================ */
 const CONFIG = {
   BUSINESS_NAME: 'Nakshatra Darpan',
-  UPI_ID: 'nehatomar210@kotak',          // your UPI VPA (a business/merchant UPI ID works best)
-  PAYEE_NAME: 'NEHA TOMAR',     // exactly as registered on your UPI/bank account (what payers see)
-  WHATSAPP: '919643330507',               // your WhatsApp number with country code, digits only
   SEAL_KEY: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxQ1OM0Yaqv4ywGm4WabVE/mSZM2AoR1JXZ9OdXAoPc9KwmTB5IlHeL831rpq4hdIAWP6eEhBJyAlEqh8y7P5xNLQv8zfdNbkOIKuRmYeFU8yb7B/XURFgGcNk3Ihhrqx9aCRIVJIsYEEDgTgvE2+HGf7xcQkXO6K4o1GgjzqFtnv4pmwDiU6mCo/Tn1p8buFgqiscnxaWmLuaMPVz9+Ptz9sztdkgi4/ITWFs82npqpprrk87J5rQwdAhwrjf/X+8tARVEqwGepAkL3ECcIzuDg4fTWHwdCsY41zfj6b4zzhKLADH7iyDOHMDyqGZdXWxndRVHS6A1Sp19tY9062rwIDAQAB',                           // public key (from Report Studio → Secret questions). Empty = questions are stored unsealed
   API_URL: 'https://ah7optwnoldi2c3rns66hk4l7q0hypyt.lambda-url.ap-south-1.on.aws/',                            // Function URL of the Lambda (see DEPLOY.md), e.g. https://xxxx.lambda-url.ap-south-1.on.aws/
   FIREBASE: { apiKey: 'AIzaSyCwJX7kDN0-BaM5R79NzaOAalRpDyT-20w', authDomain: 'playrollit.firebaseapp.com', projectId: 'playrollit' },   // used only for admin Google sign-in
@@ -628,8 +627,14 @@ const TASK = {
   questions: 'Prepare a focused personal Vedic astrology consultation: a chart overview, then the client\'s questions answered in depth. Write only those two sections — no 12-areas, lifetime outlook, remedies or closing.'
 };
 const OPEN = { full: { en: '## 1. Chart overview', hi: '## 1. कुंडली परिचय' }, questions: { en: '## Chart overview', hi: '## कुंडली परिचय' } };
+// Length targets keep the cost per report predictable (output text is most of the cost)
+const LENGTH = {
+  questions: 'LENGTH: Keep the whole report to about 1,200–1,500 words: a chart overview of about 200 words, then about 300–400 words per question. Be specific and practical; do not repeat chart facts already listed.',
+  full: 'LENGTH: Keep the whole report to about 4,000–4,500 words. Each of the 12 areas of life gets about 120–150 words; each Mahadasha in the lifetime outlook about 60–80 words; each question about 300 words. Be specific; do not repeat chart facts already listed.'
+};
+const MAX_TOKENS = { questions: { en: 5000, hi: 10000 }, full: { en: 12000, hi: 24000 } };   // hard caps, well above the targets
 function buildPrompt(chart, birth, scope, lang, qs, notes) {
-  const sys = `${SYS}\n${FORMATS[scope][lang]}\n${LANG[lang]}`;
+  const sys = `${SYS}\n${FORMATS[scope][lang]}\n${LANG[lang]}\n${LENGTH[scope]}`;
   const prompt = `${TASK[scope]} Today is ${fmtDate(Date.now())}.
 
 CLIENT CHART (computed):
@@ -640,7 +645,7 @@ ${qs.length ? qs.map((q, i) => `${i + 1}. ${q}`).join('\n') : '(none — omit th
 ${notes ? `\nASTROLOGER'S NOTES (follow these): ${notes}` : ''}
 
 Write only the report in Markdown, starting with "${OPEN[scope][lang]}".`;
-  return { sys, prompt };
+  return { sys, prompt, maxTokens: MAX_TOKENS[scope][lang] };
 }
 // Number the report's own headings so they continue after the four chart sections (5, 6, ...); the closing blessing stays unnumbered
 function renumber(md, scope, start = 5) {
@@ -888,15 +893,22 @@ $('proceed').addEventListener('click', async () => {
     try { order.sealed = await seal(JSON.stringify({ qs }), id); }
     catch (e) { console.error(e); toast('Could not seal questions on this browser; they will be sent as plain text'); }
   }
-  await Promise.race([payCfg, new Promise(r => setTimeout(r, 4000))]);
+  try { await loadPay(); } catch (e) { return toast(e.message || 'Could not load payment details. Check your internet and try again.'); }
   const upi = `upi://pay?pa=${encodeURIComponent(CONFIG.UPI_ID)}&pn=${encodeURIComponent(CONFIG.PAYEE_NAME)}&am=${plan.price.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Jyotish ' + id)}`;
   $('payAmt').textContent = `₹${plan.price}`; $('payPlan').textContent = `${plan.title} · was ₹${plan.mrp}`;
-  $('upiId').textContent = CONFIG.UPI_ID; $('upiLink').href = upi; $('ordId').textContent = id; $('pEmail').value = email;
+  $('upiId').textContent = CONFIG.UPI_ID; $('ordId').textContent = id; $('pEmail').value = email;
   try { const q = qrcode(0, 'M'); q.addData(upi); q.make(); $('qr').innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
   catch (e) { $('qr').innerHTML = '<p style="color:#111;font-size:13px;margin:8px">QR unavailable. Pay to the UPI ID shown.</p>'; }
   $('askCard').classList.add('hide'); $('payCard').classList.remove('hide'); $('payCard').scrollIntoView({ behavior: 'smooth' });
 });
 $('copyUpi').addEventListener('click', () => copyText(CONFIG.UPI_ID));
+$('saveQr').addEventListener('click', () => {   // PNG of the QR so customers on one phone can use "scan from gallery"
+  const svg = $('qr').querySelector('svg'); if (!svg) return toast('QR not available. Copy the UPI ID instead');
+  const img = new Image(), url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' }));
+  img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 720; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 720, 720); g.drawImage(img, 40, 40, 640, 640); URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = `UPI-QR-${order ? order.id : 'pay'}.png`; document.body.appendChild(a); a.click(); a.remove(); toast('QR saved. Open your UPI app → Scan → Gallery'); };
+  img.onerror = () => toast('Could not save. Take a screenshot of the QR instead'); img.src = url;
+});
 $('backPlans').addEventListener('click', () => { $('payCard').classList.add('hide'); $('askCard').classList.remove('hide'); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
 const api = async (op, data = {}, auth = false) => {
   if (!CONFIG.API_URL) throw new Error('Ordering is not switched on yet. Please contact us on WhatsApp.');
@@ -921,30 +933,28 @@ async function shrinkShot(file) {   // phone screenshots are several MB; send a 
   return out;
 }
 // UPI details can be changed in the Lambda (UPI_ID, UPI_NAME) without editing this page
-const payCfg = CONFIG.API_URL ? api('config').then(c => { if (c.upiId) CONFIG.UPI_ID = c.upiId; if (c.upiName) CONFIG.PAYEE_NAME = c.upiName; }).catch(() => {}) : Promise.resolve();
+let payCfg = null;
+const loadPay = () => payCfg || (payCfg = api('config').then(c => { if (!c.upiId) throw new Error('Payments are not set up yet. Please try again later.'); CONFIG.UPI_ID = c.upiId; CONFIG.PAYEE_NAME = c.upiName || ''; }).catch(e => { payCfg = null; throw e; }));
+if (CONFIG.API_URL) loadPay().catch(() => {});
 $('shotFile').addEventListener('change', () => {
   const f = $('shotFile').files[0], img = $('shotPrev');
   if (!f) return img.classList.add('hide');
-  img.src = URL.createObjectURL(f); img.classList.remove('hide'); $('shotLater').checked = false;
+  img.src = URL.createObjectURL(f); img.classList.remove('hide');
 });
-$('shotLater').addEventListener('change', () => { if ($('shotLater').checked) { $('shotFile').value = ''; $('shotPrev').classList.add('hide'); } });
 $('submitOrder').addEventListener('click', async () => {
-  const utr = $('utr').value.trim().replace(/\s+/g, ''), email = $('pEmail').value.trim(), later = $('shotLater').checked, file = $('shotFile').files[0];
-  if (!utr && !file && !later) return toast('Enter the UTR, or upload the payment screenshot'), $('utr').focus();
+  const utr = $('utr').value.trim().replace(/\s+/g, ''), email = $('pEmail').value.trim(), file = $('shotFile').files[0];
+  if (!utr && !file) return toast('Enter the UTR, or upload the payment screenshot'), $('utr').focus();
   if (utr && !/^[A-Za-z0-9]{6,24}$/.test(utr)) return toast('That UTR looks wrong. It is usually 12 digits'), $('utr').focus();
   if (!emailOk(email)) return toast('Enter a valid email'), $('pEmail').focus();
   const btn = $('submitOrder'), label = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Submitting…';
   try {
     const shot = file ? await shrinkShot(file) : '';
-    const payload = { id: order.id, planId: order.plan.id, price: order.plan.price, email, phone: order.phone, lang: order.lang, birth, utr, shot, shotLater: later && !shot };
+    const payload = { id: order.id, planId: order.plan.id, price: order.plan.price, email, phone: order.phone, lang: order.lang, birth, utr, shot };
     if (order.sealed) payload.sealed = order.sealed; else payload.qs = order.qs;
     await api('create', payload);
-    order.email = email; order.utr = utr; order.hasShot = !!shot; order.later = later && !shot;
+    order.email = email; order.utr = utr; order.hasShot = !!shot;
     try { sessionStorage.setItem('nd_ord', JSON.stringify({ id: order.id, email })); } catch (e) {}
     $('dName').textContent = birth.name.split(' ')[0]; $('dOrd').textContent = order.id; $('dPlan').textContent = `${order.plan.title} · ₹${order.plan.price} · ${order.lang === 'hi' ? 'हिन्दी' : 'English'}`;
-    $('dShot').classList.toggle('hide', !order.later);
-    $('waAgain').classList.toggle('hide', !order.later);
-    $('waAgain').href = `https://wa.me/${waNum(CONFIG.WHATSAPP)}?text=${encodeURIComponent(`Order ${order.id}: sending my payment screenshot (Rs ${order.plan.price}).`)}`;
     const s = hoursState();
     $('dHours').classList.toggle('on', s.open);
     $('dHours').innerHTML = s.open ? `We're open now (${esc(CONFIG.HOURS.label)}). Your payment will be verified shortly.` : `We're offline right now. Your payment will be verified during business hours, ${esc(CONFIG.HOURS.label)}, ${s.before ? 'later today' : 'from tomorrow morning'}.`;
@@ -1033,8 +1043,18 @@ function initAdmin(n = 0) {
 $('gSign').addEventListener('click', async () => {
   if (!window.firebase) return toast('Still loading, try again in a moment');
   const pr = new firebase.auth.GoogleAuthProvider();
+  pr.setCustomParameters({ prompt: 'select_account' });
+  $('aMsg').textContent = '';
+  // Popup only: the redirect method loses the sign-in on sites outside firebaseapp.com (browsers block the storage it needs)
   try { await firebase.auth().signInWithPopup(pr); }
-  catch (e) { if (/popup/.test(e.code || '')) firebase.auth().signInWithRedirect(pr); else if (e.code !== 'auth/cancelled-popup-request' && e.code !== 'auth/popup-closed-by-user') $('aMsg').textContent = e.message; }
+  catch (e) {
+    const c = e.code || '';
+    $('aMsg').textContent = c === 'auth/popup-blocked' ? 'Your browser blocked the Google window. Allow pop-ups for this site, then tap Sign in again.'
+      : c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' ? 'The Google window was closed before sign-in finished. Tap Sign in again.'
+      : c === 'auth/unauthorized-domain' ? 'This site is not allowed in Firebase yet: add ' + location.hostname + ' under Authentication → Settings → Authorized domains.'
+      : c === 'auth/operation-not-allowed' ? 'Google sign-in is switched off in Firebase: Authentication → Sign-in method → enable Google.'
+      : `Sign-in failed (${c || 'unknown'}): ${e.message}`;
+  }
 });
 $('aOut').addEventListener('click', () => firebase.auth().signOut());
 $('aRefresh').addEventListener('click', () => loadOrders());
@@ -1049,7 +1069,7 @@ function ordHTML(o) {
     : o.status === 'failed' ? `<div class="btns" style="margin-top:12px"><button class="btn pri sm" data-act="retry">Retry report</button></div>`
     : o.status === 'ready' ? `<div class="btns" style="margin-top:12px"><button class="btn sm" data-act="resend">Resend email</button></div>` : '';
   return `<div class="ord" data-id="${esc(o.id)}"><div class="top"><div><div class="amt">₹${o.plan.price}</div><div class="note" style="margin:2px 0 0">${esc(o.plan.title)} · ${o.lang === 'hi' ? 'Hindi' : 'English'}</div></div><div style="text-align:right"><span class="badge ${cls}">${esc(lab)}</span><div class="note" style="margin:6px 0 0">${esc(o.id)}<br>${when(o.createdAt)}</div></div></div>
-    <div class="meta"><b>${esc(o.name)}</b><br>${esc(o.email)} · <a href="https://wa.me/${waNum(o.phone)}" target="_blank" rel="noopener" style="color:var(--gold2)">${esc(o.phone)}</a><br>${o.utr ? `UTR <b>${esc(o.utr)}</b> <button class="btn sm" data-act="copy" data-v="${esc(o.utr)}" style="padding:2px 8px">Copy</button>` : ''}${o.shotLater ? '<br><b style="color:#f19a86">Screenshot promised on WhatsApp</b>' : ''}${o.hasShot && !o.utr ? '<br>Payment screenshot attached' : ''}${o.approvedBy ? `<br>Approved by ${esc(o.approvedBy)}` : ''}${o.rejectedBy ? `<br>Rejected by ${esc(o.rejectedBy)}: ${esc(o.rejectReason || '')}` : ''}${o.error ? `<br><span style="color:#f19a86">${esc(o.error)}</span>` : ''}${o.status === 'ready' && o.emailSent === false ? '<br><span style="color:#f19a86">Email could not be sent. Use Resend.</span>' : ''}</div>${acts}</div>`;
+    <div class="meta"><b>${esc(o.name)}</b><br>${esc(o.email)} · <a href="https://wa.me/${waNum(o.phone)}" target="_blank" rel="noopener" style="color:var(--gold2)">${esc(o.phone)}</a><br>${o.utr ? `UTR <b>${esc(o.utr)}</b> <button class="btn sm" data-act="copy" data-v="${esc(o.utr)}" style="padding:2px 8px">Copy</button>` : ''}${o.shotLater ? '<br><b style="color:#f19a86">Screenshot promised on WhatsApp</b>' : ''}${o.hasShot && !o.utr ? '<br>Payment screenshot attached' : ''}${o.approvedBy ? `<br>Approved by ${esc(o.approvedBy)}` : ''}${o.rejectedBy ? `<br>Rejected by ${esc(o.rejectedBy)}: ${esc(o.rejectReason || '')}` : ''}${o.error ? `<br><span style="color:#f19a86">${esc(o.error)}</span>` : ''}${o.tokensOut ? `<br><small>${esc(o.model || '')} · ${o.tokensIn} in / ${o.tokensOut} out tokens</small>` : ''}${o.status === 'ready' && o.emailSent === false ? '<br><span style="color:#f19a86">Email could not be sent. Use Resend.</span>' : ''}</div>${acts}</div>`;
 }
 function paintOrders() {
   const n = orders.filter(TABS.review).length; $('nReview').textContent = n ? `(${n})` : '';
@@ -1081,7 +1101,7 @@ window.addEventListener('hashchange', route); route();
 $('remember').addEventListener('change', () => { if (!$('remember').checked) forget('jy_last', 'jy_contact'); });
 $('clearAll').addEventListener('click', () => {
   ['nm', 'dob', 'tob', 'pob', 'cEmail', 'cPhone', 'utr', 'mLat', 'mLon'].forEach(id => $(id).value = '');
-  $('gd').value = 'Male'; $('tobU').checked = false; $('tob').disabled = false; $('remember').checked = false; $('shotLater').checked = false; $('cLang').value = 'en';
+  $('gd').value = 'Male'; $('tobU').checked = false; $('tob').disabled = false; $('remember').checked = false; $('cLang').value = 'en';
   place = null; chart = null; birth = null; plan = null; order = null; $('qBox').innerHTML = ''; syncPh(); forget('jy_last', 'jy_contact');
   $('coordLine').innerHTML = '<span>Coordinates fill in automatically when you pick a place.</span>';
   ['chartCard', 'askCard', 'payCard', 'doneCard'].forEach(id => $(id).classList.add('hide')); $('emptyCard').classList.remove('hide');
