@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- build: __ADMIN_PIN_HASH__ -->
 <title>Nakshatra Darpan · Kundli & Consultation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Serif+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
 <style>
 /* VOICE: a dignified pandit's desk at night — calm, precise, devotional, never salesy
    IDEA: the hand-drawn janam patrika — a ruled kundli square with gold ink on deep indigo paper
@@ -142,8 +145,17 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--mut);fon
 @keyframes sp{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.spin{animation:none}}
 #printArea{display:none}
-body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin-on .hero,body.admin-on #emptyCard{display:none!important}
-.admin-only{display:none!important}body.admin-on .admin-only{display:block!important}body.admin-on main{padding-top:20px}
+.view{display:none}body.mode-admin #viewAdmin,body.mode-track #viewTrack{display:block}
+body.mode-admin .hero,body.mode-admin .grid,body.mode-track .hero,body.mode-track .grid{display:none}
+.view{max-width:860px;margin:24px auto}
+.hint{font-size:14px;color:var(--mut);margin:10px 0 0}.hint a{color:var(--gold2)}
+.atabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.atabs button{border:1px solid var(--line);background:transparent;color:var(--mut);padding:8px 14px;border-radius:99px;font:inherit;font-size:14px;cursor:pointer}.atabs button.on{border-color:var(--gold);color:var(--gold2);background:rgba(212,175,55,.08)}
+.ord{border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0;background:var(--panel2)}
+.ord .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}.ord .amt{font-size:30px}
+.ord .meta{font-size:14px;color:var(--mut);line-height:1.7;margin-top:6px;overflow-wrap:anywhere}.ord .meta b{color:var(--ink)}
+.badge{display:inline-block;font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}.badge.ok{color:#7fc29b;border-color:rgba(127,194,155,.5)}.badge.warn{color:#f1d57a;border-color:rgba(212,175,55,.5)}.badge.bad{color:#f19a86;border-color:rgba(224,87,58,.5)}
+.confirm{margin-top:10px;padding:10px;border:1px dashed var(--line2);border-radius:10px}
+input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-radius:12px;background:var(--panel2);color:var(--ink)}
 .flow{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0;padding:0;list-style:none;counter-reset:f}.flow li{counter-increment:f;font-size:13px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 10px 3px 6px}.flow li::before{content:counter(f);display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(212,175,55,.18);color:var(--gold2);font-size:11px;font-weight:700;margin-right:6px}
 .status.err{border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08);overflow-wrap:anywhere}
 @media print{
@@ -170,27 +182,13 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
 <main class="wrap">
   <section class="hero">
     <h1>Your free Janam Kundli, then ask the Acharya</h1>
-    <p>Enter your birth details to see your sidereal (Lahiri) chart, Nakshatra, Panchang and running Dasha, all free. Then pick a plan to ask your questions. Your personal report comes on WhatsApp.</p>
+    <p>Enter your birth details to see your sidereal (Lahiri) chart, Nakshatra, Panchang and running Dasha, all free. Then pick a plan to ask your questions. Your personal report is emailed to you as a PDF.</p>
+    <p class=\"hint\">Already ordered? <a href=\"#report\">Check my report</a></p>
   </section>
 
   <div class="grid">
     <!-- LEFT: birth form -->
     <div class="sticky">
-      <!-- ADMIN · step 1 -->
-      <section class="card admin admin-only" id="adminTop">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-          <div><div class="step" style="color:#f19a86">Admin · only on this device</div><h2>Report studio</h2></div>
-          <div class="btns"><button class="btn sm" type="button" id="setBtn">AI settings</button><button class="btn sm" type="button" id="lockBtn">Lock</button></div>
-        </div>
-        <ol class="flow"><li>Load the client</li><li>Check birth details</li><li>Review chart</li><li>Add questions &amp; generate</li><li>Send report</li></ol>
-        <div class="step" style="margin-top:16px">1 · Load client from WhatsApp order</div>
-        <textarea id="orderPaste" rows="4" placeholder="Paste the client's full WhatsApp order message here"></textarea>
-        <div class="btns" style="margin-top:10px"><button class="btn pri sm" type="button" id="parseBtn">Fill from order</button><button class="btn sm" type="button" id="newClient">New client (blank)</button></div>
-        <p class="note">No order message? Fill in step 2 by hand.</p>
-        <div class="status" id="keyStatus" style="font-size:14px"></div>
-        <div class="btns"><label class="btn sm" for="keyFile" style="margin:0">Import key backup</label><input type="file" id="keyFile" accept=".json,application/json,text/plain" hidden><button class="btn sm" type="button" id="keyForget">Remove key from this browser</button></div>
-      </section>
-
       <section class="card" id="formCard">
         <div class="step">Step 1 · Birth details</div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Janam details</h2><button class="btn sm" type="button" id="clearAll">Clear</button></div>
@@ -253,39 +251,19 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         <div class="sec"><h3>4. Lifetime Vimshottari Mahadasha</h3><div id="dashaNow" class="status"></div><div class="scroll"><table id="mtab"></table></div></div>
         <div class="sec"><h3>5. Chart overview</h3><div class="prose" id="overview"></div></div>
         <div class="sec"><h3>6. Answers to your questions</h3>
-          <p class="note" style="margin-top:0">Ask the Acharya below. Your answers come with this full chart, on WhatsApp.</p>
+          <p class="note" style="margin-top:0">Ask the Acharya below. Your answers come with this full chart, by email.</p>
           <div class="status locked"><b style="color:var(--gold2)">Detailed life report · ₹101</b><br>Everything above, plus: analysis of all 12 areas of life · lifetime outlook Dasha by Dasha · current Dasha and transits · Sade Sati and Mangal dosha · personal remedies (Upayas).</div>
         </div>
         <p class="note" id="tobNote"></p>
       </section>
 
-      <!-- ADMIN · step 4 -->
-      <section class="card admin admin-only" id="adminGen">
-        <div class="step">4 · Questions &amp; report</div>
-        <h2>Generate the report</h2>
-        <p class="sub" id="genStatus">Cast the client's chart in step 2 first.</p>
-        <div class="row r2">
-          <div class="f"><label for="aPhone">Client WhatsApp</label><input id="aPhone" inputmode="tel" placeholder="98xxxxxxxx"></div>
-          <div class="f"><label for="aEmail">Client email</label><input id="aEmail" type="email" placeholder="client@email.com"></div>
-        </div>
-        <div class="f"><label for="aQs">Client questions (one per line, optional)</label><textarea id="aQs" rows="4" placeholder="When will my career stabilise?&#10;Is 2027 good for marriage?"></textarea></div>
-        <div class="f"><label for="aNotes">Your notes for the AI (optional)</label><textarea id="aNotes" rows="2" placeholder="e.g. Keep remedies simple; use Hindi terms"></textarea></div>
-        <div class="row r2">
-          <div class="f"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option></select></div>
-          <div class="f"><label for="scope">Report type</label><select id="scope"><option value="full">Full report (₹101)</option><option value="questions">Answers only + charts (₹21 / ₹51)</option></select></div>
-        </div>
-        <p class="note" style="margin:0 0 12px" id="scopeNote">Every report includes the birth chart, all 12 areas of life, lifetime outlook, current Dasha, answers and remedies. Takes about a minute.</p>
-        <button class="btn pri full" type="button" id="genBtn">Generate report</button>
-        <div class="status err hide" id="aiErr" role="alert"></div>
-      </section>
-
       <section class="card hide" id="askCard">
         <div class="step">Step 3 · Ask the Acharya</div>
         <h2>Choose a consultation plan</h2>
-        <p class="sub">Each answer is prepared personally from your chart and sent on WhatsApp during <span class="hrsLbl"></span>.</p>
+        <p class="sub">Each answer is prepared personally from your chart. After your payment is verified (during <span class="hrsLbl"></span>), the report is emailed to you as a PDF.</p>
         <div class="plans" id="plans"></div>
         <div id="qBox"></div>
-        <p class="status hide" id="sealNote" style="font-size:14px">Your questions are sealed before sending. Only the Acharya can open them, even in WhatsApp.</p>
+        <p class="status hide" id="sealNote" style="font-size:14px">Your questions are sealed before they leave your phone. Reviewers cannot read them; they are opened only to write your report.</p>
         <div class="f"><label for="cLang">Report language *</label><select id="cLang"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option></select></div>
         <div class="row r2">
           <div class="f"><label for="cEmail">Your email *</label><input id="cEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
@@ -309,65 +287,67 @@ body.admin-on #askCard,body.admin-on #payCard,body.admin-on #doneCard,body.admin
         </div>
         <div class="sec">
           <h3>After paying</h3>
-          <p class="note" style="margin:0 0 12px">Enter the UTR <b style="color:var(--gold2)">or</b> tick the screenshot option. Either one is enough.</p>
+          <p class="note" style="margin:0 0 12px">Give the UTR <b style="color:var(--gold2)">or</b> upload the payment screenshot. Either one is enough.</p>
           <div class="row r2">
             <div class="f"><label for="utr">UPI transaction ID / UTR</label><input id="utr" inputmode="numeric" placeholder="12-digit UTR"></div>
             <div class="f"><label for="pEmail">Email for the report *</label><input id="pEmail" type="email" placeholder="you@email.com"></div>
           </div>
-          <div class="f"><label class="chk" style="color:var(--ink);font-size:15px;align-items:flex-start"><input type="checkbox" id="shotLater" style="margin-top:3px"> <span>No UTR? I'll send the <b style="color:var(--gold2)">payment screenshot</b> in the WhatsApp chat</span></label></div>
-          <div class="btns"><button class="btn wa" type="button" id="sendWa">Send details on WhatsApp</button><button class="btn sm" type="button" id="backPlans">Change plan</button></div>
-          <p class="note hide" id="sendHint">After WhatsApp opens and you send the details, tap the attach (paperclip) icon in the same chat and send your payment screenshot.</p>
+          <div class="f"><label for="shotFile">Payment screenshot (optional if you gave the UTR)</label><input id="shotFile" type="file" accept="image/*"><img class="shot hide" id="shotPrev" alt="Screenshot preview"></div>
+          <div class="f"><label class="chk" style="color:var(--ink);font-size:15px;align-items:flex-start"><input type="checkbox" id="shotLater" style="margin-top:3px"> <span>I'll send the <b style="color:var(--gold2)">payment screenshot on WhatsApp</b> instead</span></label></div>
+          <div class="btns"><button class="btn pri" type="button" id="submitOrder">Submit for review</button><button class="btn sm" type="button" id="backPlans">Change plan</button></div>
+          <p class="note">We verify the payment, then prepare your report and email it to you. The report also stays on this site for 7 days.</p>
         </div>
       </section>
 
       <section class="card hide" id="doneCard">
-        <div class="step">Step 5 · Sent</div>
+        <div class="step">Step 5 · Submitted</div>
         <div class="done">
           <h2>Dhanyavaad, <span id="dName"></span></h2>
           <p class="sub">Order <b id="dOrd" style="color:var(--gold2)"></b> · <span id="dPlan"></span></p>
         </div>
-        <div class="status hide" id="dShot" style="border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08)"><b style="color:#f19a86">Next step: send your payment screenshot.</b><br>In the same WhatsApp chat, tap the attach (paperclip) icon → Gallery → your payment screenshot. We start your report once it arrives.</div>
+        <div class="status hide" id="dShot" style="border-color:rgba(224,87,58,.6);background:rgba(224,87,58,.08)"><b style="color:#f19a86">Next step: send your payment screenshot on WhatsApp.</b><br>Tap the button below and attach the screenshot, quoting your order ID. We cannot verify the payment without it.</div>
         <div class="status" id="dHours"></div>
         <p class="note" id="dNote"></p>
-        <div class="btns" style="margin-top:12px"><a class="btn wa" id="waAgain" href="#" target="_blank" rel="noopener">Open WhatsApp</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
-      </section>
-
-      <section class="card hide" id="reportCard">
-        <div class="step">5 · Send report</div>
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 id="rTitle">Report</h2>
-          <div class="btns"><button class="btn sm" type="button" id="rCopy">Copy</button><a class="btn sm wa" id="rWa" href="#" target="_blank" rel="noopener">WhatsApp client</a><a class="btn sm" id="rMail" href="#">Email</a><button class="btn sm" type="button" id="rPrint">Print / PDF</button></div></div>
-        <div class="prose" id="rBody"></div>
-      </section>
-
-      <section class="card admin-only" id="savedCard">
-        <div class="step">Saved reports</div>
-        <h2>On this device</h2>
-        <div class="hist" id="hist" style="margin-top:12px"><p class="note">Reports you generate are kept on this device.</p></div>
+        <div class="btns" style="margin-top:12px"><a class="btn pri" id="dTrack" href="#report">Check my report</a><a class="btn wa hide" id="waAgain" href="#" target="_blank" rel="noopener">Send screenshot on WhatsApp</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
       </section>
     </div>
   </div>
+
+<section class="view wrap" id="viewTrack">
+  <div class="card">
+    <div class="step">Your report</div><h2>Check my report</h2>
+    <p class="sub">Enter the email you ordered with and your order ID (it is in your confirmation email). Reports stay available for 7 days.</p>
+    <form id="trackForm"><div class="row r2">
+      <div class="f"><label for="tEmail">Email</label><input id="tEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
+      <div class="f"><label for="tId">Order ID</label><input id="tId" autocapitalize="characters" autocomplete="off" placeholder="ND261127-AB12"></div>
+    </div><div class="btns"><button class="btn pri" id="tGo">Check</button><a class="btn sm" href="#">Back to home</a></div></form>
+    <div class="status hide" id="tStatus"></div>
+  </div>
+  <section class="card hide" id="reportCard" style="margin-top:16px">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 id="rTitle">Report</h2>
+      <div class="btns"><button class="btn pri sm" type="button" id="rPdf">Download PDF</button><button class="btn sm" type="button" id="rPrint">Print</button></div></div>
+    <p class="note" id="rExp"></p>
+    <div class="prose" id="rBody"></div>
+  </section>
+</section>
+
+<section class="view wrap" id="viewAdmin">
+  <div class="card admin">
+    <div class="step" style="color:#f19a86">Admin</div><h2>Payment review</h2>
+    <div id="aLogin"><p class="sub">Sign in with your admin Google account to review payments.</p><button class="btn pri" type="button" id="gSign">Sign in with Google</button><p class="note" id="aMsg"></p></div>
+    <div id="aMain" class="hide">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><span class="note" id="aWho"></span><span class="btns"><button class="btn sm" type="button" id="aRefresh">Refresh</button><button class="btn sm" type="button" id="aOut">Sign out</button><a class="btn sm" href="#">Home</a></span></div>
+      <div class="atabs" id="aTabs"><button class="on" data-t="review">Needs review <span id="nReview"></span></button><button data-t="work">In progress</button><button data-t="done">Done</button></div>
+      <div id="aList"></div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer><div class="wrap">
   <p>Charts are computed in your browser with the Lahiri ayanamsa, whole-sign houses and mean Rahu. Jyotish guidance is for reflection and spiritual insight. It is not a substitute for medical, legal or financial advice.</p>
   <p><span id="bizFoot"></span> · Replies <span class="hrsLbl"></span></p>
 </div></footer>
-
-<dialog id="pinDlg"><form method="dialog" id="pinForm">
-  <h3>Admin access</h3><p class="sub">Enter your PIN or password to open the report studio on this device.</p>
-  <div class="f"><input id="pin" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="PIN / password"></div>
-  <div class="btns"><button class="btn pri" value="ok" id="pinOk">Unlock</button><button class="btn sm" value="cancel" formnovalidate>Cancel</button></div>
-</form></dialog>
-
-<dialog id="setDlg"><form method="dialog">
-  <h3>AI settings</h3><p class="sub">Your key is stored only in this browser. It is never written into the page, so visitors can't see it.</p>
-  <div class="f"><label for="sProv">Provider</label><select id="sProv"><option value="gemini">Google Gemini (AI Studio key)</option><option value="claude">Anthropic Claude (Console key)</option></select></div>
-  <div class="f"><label for="sKey">API key</label><input id="sKey" type="password" autocomplete="off" placeholder="Paste key"></div>
-  <div class="f"><label for="sModel">Model</label><input id="sModel" placeholder="gemini-flash-latest"></div>
-  <p class="note" id="sHelp"></p>
-  <div class="status hide" id="sTestOut" style="margin-top:0"></div>
-  <div class="btns"><button class="btn sm" type="button" id="sTest">Test key</button><button class="btn pri" value="save" id="sSave">Save</button><button class="btn sm" value="cancel" formnovalidate>Close</button></div>
-</form></dialog>
 
 <div class="toast" id="toast"></div>
 <div id="printArea"></div>
@@ -381,8 +361,9 @@ const CONFIG = {
   UPI_ID: 'nehatomar210@kotak',          // your UPI VPA (a business/merchant UPI ID works best)
   PAYEE_NAME: 'NEHA TOMAR',     // exactly as registered on your UPI/bank account (what payers see)
   WHATSAPP: '919643330507',               // your WhatsApp number with country code, digits only
-  SEAL_KEY: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxQ1OM0Yaqv4ywGm4WabVE/mSZM2AoR1JXZ9OdXAoPc9KwmTB5IlHeL831rpq4hdIAWP6eEhBJyAlEqh8y7P5xNLQv8zfdNbkOIKuRmYeFU8yb7B/XURFgGcNk3Ihhrqx9aCRIVJIsYEEDgTgvE2+HGf7xcQkXO6K4o1GgjzqFtnv4pmwDiU6mCo/Tn1p8buFgqiscnxaWmLuaMPVz9+Ptz9sztdkgi4/ITWFs82npqpprrk87J5rQwdAhwrjf/X+8tARVEqwGepAkL3ECcIzuDg4fTWHwdCsY41zfj6b4zzhKLADH7iyDOHMDyqGZdXWxndRVHS6A1Sp19tY9062rwIDAQAB',                           // public key from Report Studio → Secret questions. Empty = questions sent as plain text
-  ADMIN_PIN_HASH: '__ADMIN_PIN_HASH__',   // filled in at deploy from your ADMIN_PIN secret — do not put the PIN here
+  SEAL_KEY: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxQ1OM0Yaqv4ywGm4WabVE/mSZM2AoR1JXZ9OdXAoPc9KwmTB5IlHeL831rpq4hdIAWP6eEhBJyAlEqh8y7P5xNLQv8zfdNbkOIKuRmYeFU8yb7B/XURFgGcNk3Ihhrqx9aCRIVJIsYEEDgTgvE2+HGf7xcQkXO6K4o1GgjzqFtnv4pmwDiU6mCo/Tn1p8buFgqiscnxaWmLuaMPVz9+Ptz9sztdkgi4/ITWFs82npqpprrk87J5rQwdAhwrjf/X+8tARVEqwGepAkL3ECcIzuDg4fTWHwdCsY41zfj6b4zzhKLADH7iyDOHMDyqGZdXWxndRVHS6A1Sp19tY9062rwIDAQAB',                           // public key (from Report Studio → Secret questions). Empty = questions are stored unsealed
+  API_URL: 'https://ah7optwnoldi2c3rns66hk4l7q0hypyt.lambda-url.ap-south-1.on.aws/',                            // Function URL of the Lambda (see DEPLOY.md), e.g. https://xxxx.lambda-url.ap-south-1.on.aws/
+  FIREBASE: { apiKey: 'AIzaSyCwJX7kDN0-BaM5R79NzaOAalRpDyT-20w', authDomain: 'playrollit.firebaseapp.com', projectId: 'playrollit' },   // used only for admin Google sign-in
   HOURS: { open: 10, close: 18, label: '10 AM – 6 PM IST' },
   PLANS: [
     { id: 'q2', title: '2 questions', questions: 2, mrp: 200, price: 21, scope: 'questions', note: 'Chart overview + 2 detailed answers, with your full chart' },
@@ -539,11 +520,141 @@ const AS = (() => {
   }
   return { cast, SIGNS, SHORT, NAK, LORD, signOf, degStr, sidereal, lagna, tzOffset, YEAR };
 })();
+if (typeof module !== 'undefined') module.exports = AS;
 
+</script>
+<script>
+/* ===== Shared by the website and the server: chart text for the AI, prompts, helpers ===== */
+const CORE = (AS) => {
+const fmtDate = ms => new Date(ms).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' });
+const t12 = t => { const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+const offStr = m => { const s = m < 0 ? '-' : '+', a = Math.abs(m); return `UTC${s}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`; };
+const SN = AS.SIGNS.map(s => s.split(' ')[0]);
+const SE = AS.SIGNS.map(s => s.match(/\((.+)\)/)[1]);
+function chartSummary(c, b) {
+  const P = c.P, L = [];
+  L.push(`Name: ${b.name}`, `Gender: ${b.gender}`, `Birth date: ${b.dob}`, `Birth time: ${b.tobUnknown ? '12:00 (time not known)' : b.tob}`, `Place: ${b.placeLabel}`, `Coordinates: ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)} (${b.tz || offStr(c.offsetMin)})`);
+  L.push(`Lagna: ${AS.SIGNS[c.asc.sign]} ${c.asc.deg}, ${c.asc.nak.name} pada ${c.asc.nak.pada}`);
+  L.push(`Moon (Rashi): ${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}, Nakshatra ${P.Moon.nak.name} pada ${P.Moon.nak.pada}`);
+  L.push(`Dasha now: ${c.md ? c.md.lord : '—'} Mahadasha / ${c.ad ? c.ad.lord : '—'} Antardasha (till ${c.ad ? fmtDate(c.ad.end) : '—'})`);
+  return L.join('\n');
+}
+const BHAVA = [['Tanu', 'Self, body, personality, vitality'], ['Dhana', 'Wealth, family, speech, food'], ['Sahaja', 'Courage, siblings, communication, short travel'],
+  ['Sukha', 'Mother, home, property, vehicles, inner peace'], ['Putra', 'Children, education, intelligence, creativity'], ['Ripu', 'Health, debts, enemies, competition, service'],
+  ['Kalatra', 'Marriage, spouse, partnerships, business'], ['Ayu', 'Transformation, inheritance, research, sudden events'], ['Dharma', 'Fortune, father, guru, faith, higher learning'],
+  ['Karma', 'Career, status, authority, reputation'], ['Labha', 'Gains, income, friends, wishes fulfilled'], ['Vyaya', 'Expenses, foreign lands, sleep, spirituality, moksha']];
+const ASPECTS = { Mars: [4, 7, 8], Jupiter: [5, 7, 9], Saturn: [3, 7, 10] };
+function houses(c) {
+  return BHAVA.map(([nm, area], i) => {
+    const h = i + 1, sign = (c.asc.sign + i) % 12, lord = AS.LORD[sign], L = c.P[lord];
+    const occ = c.planets.filter(p => p.house === h).map(p => p.name);
+    const asp = c.planets.filter(p => p.name !== 'Rahu' && p.name !== 'Ketu' && (ASPECTS[p.name] || [7]).some(n => (p.house - 1 + n - 1) % 12 + 1 === h)).map(p => p.name);
+    return { h, nm, area, sign, lord, lordHouse: L.house, lordSign: L.sign, lordDig: L.dignity, lordRetro: L.retro, occ, asp };
+  });
+}
+const lifeDashas = c => c.vim.list.filter(x => x.start < c.utcMs + 100 * AS.YEAR).map(x => ({ ...x, a0: Math.max(0, (x.start - c.utcMs) / AS.YEAR), a1: (x.end - c.utcMs) / AS.YEAR }));
+function chartForAI(c, b) {
+  const rows = c.planets.map(p => `${p.name}: ${AS.SIGNS[p.sign]} ${p.deg}, house ${p.house}, ${p.nak.name} pada ${p.nak.pada} (lord ${p.nak.lord})${p.retro ? ', retrograde' : ''}${p.dignity ? ', ' + p.dignity : ''}`);
+  const md = lifeDashas(c).map(x => `${x.lord} MD ${fmtDate(Math.max(x.start, c.utcMs))} – ${fmtDate(x.end)} (age ${Math.floor(x.a0)}–${Math.floor(x.a1)})`);
+  const hs = houses(c).map(x => `House ${x.h} ${x.nm} (${x.area}): ${AS.SIGNS[x.sign]}; lord ${x.lord} in house ${x.lordHouse} (${SN[x.lordSign]}${x.lordDig ? ', ' + x.lordDig : ''}${x.lordRetro ? ', R' : ''}); occupants: ${x.occ.join(', ') || 'none'}; aspected by: ${x.asp.join(', ') || 'none'}`);
+  const ad = c.md ? c.md.subs.map(x => `${x.lord} AD ${fmtDate(x.start)} – ${fmtDate(x.end)}`) : [];
+  return `${chartSummary(c, b)}
+Ayanamsa (Lahiri): ${c.ayanamsa.toFixed(3)}°, whole-sign houses, mean nodes
+Lagna lord: ${c.lagnaLord}; Moon-sign lord: ${c.moonLord}
+Planets:\n${rows.join('\n')}
+Panchang at birth: ${c.panchang.vara}, ${c.panchang.tithi}, Yoga ${c.panchang.yoga}
+Houses (whole-sign, Parashari aspects; Mars 4/7/8, Jupiter 5/7/9, Saturn 3/7/10):\n${hs.join('\n')}
+Lifetime Mahadasha sequence (from birth):\n${md.join('\n')}
+Antardashas in current Mahadasha:\n${ad.join('\n')}
+Current transits (today ${fmtDate(Date.now())}): ${c.transits.map(t => `${t.name} in ${AS.SIGNS[t.sign]} ${t.deg} (${t.fromMoon} from Moon, ${t.fromLagna} from Lagna)${t.retro && t.name !== 'Rahu' && t.name !== 'Ketu' ? ' R' : ''}`).join('; ')}
+Sade Sati status: ${c.sadeSati}
+Mars placement: house ${c.manglik.house} (${c.manglik.is ? 'Mangal dosha by lagna' : 'no Mangal dosha by lagna'})`;
+}
+const my = ms => new Date(ms).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', year: 'numeric' });
+const ORD = n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
+const SYS = `You are an experienced, compassionate Vedic astrologer (Jyotishi) trained in Parashari and Jaimini methods. You write personal consultation reports.
+Rules:
+- The chart data given is computed precisely (sidereal, Lahiri). Treat it as ground truth. Never recalculate or contradict positions, houses, nakshatras or dasha dates.
+- Answer every client question directly, using specific placements, house lords, dasha/antardasha timing and transits, with date windows where the data supports them.
+- Tone: dignified, warm, empowering. Frame difficult placements as karmic lessons with practical guidance. No fear-mongering, no guarantees, no medical, legal or financial instructions; suggest professional help where relevant.
+- Remedies (Upayas): mantras with counts, dana (charity) by weekday, fasting, lifestyle and seva. Gemstones only as optional with the caveat to consult an expert first.
+- Life areas: never predict death, age at death or lifespan figures, and never diagnose illness. For the 8th house speak of transformation, research, inheritance and resilience; for health speak of tendencies and care.`;
+const FORMATS = {
+  full: { en: `- Format in Markdown with ALL of these sections, every time, in this order:
+## 1. Chart overview
+(Lagna, Moon sign, Nakshatra, key yogas, dignities and overall nature of the chart.)
+## 2. The 12 areas of life
+Write one ### heading for each of the 12 houses in order, e.g. "### 1st house · Tanu — Self & vitality". Under each: 
+**Strength:** one of Strong / Good / Mixed / Needs care, with one line why (sign, lord placement, occupants, aspects).
+Then 3–5 sentences: what this area promises, its strengths and challenges, and which Mahadasha/Antardasha periods (with ages or years) activate it.
+## 3. Lifetime outlook
+Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadasha with years and ages): main themes, which areas of life rise, what to prepare for. Mark the period running now.
+## 4. Dasha and transits now
+## 5. Answers to your questions
+(One ### heading per question, restating it. Omit this section only if no questions are given.)
+## 6. Upayas (remedies)
+## Closing blessing  (2–3 lines)`,
+    hi: `- Format in Markdown with ALL of these sections, every time, in this order (headings in Hindi exactly as below):
+## 1. कुंडली परिचय
+(लग्न, चंद्र राशि, नक्षत्र, प्रमुख योग, ग्रहों का बल और कुंडली का समग्र स्वभाव।)
+## 2. जीवन के 12 क्षेत्र
+Write one ### heading for each of the 12 houses in order, e.g. "### प्रथम भाव · तनु — स्वयं और स्वास्थ्य". Under each:
+**बल:** one of प्रबल / अच्छा / मिश्रित / सावधानी आवश्यक, with one line why (sign, lord placement, occupants, aspects).
+Then 3–5 sentences: what this area promises, strengths and challenges, and which Mahadasha/Antardasha periods (with ages or years) activate it.
+## 3. जीवनकाल की दिशा
+Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadasha with years and ages). Mark the period running now.
+## 4. वर्तमान दशा और गोचर
+## 5. आपके प्रश्नों के उत्तर
+(One ### heading per question, restating it in Hindi. Omit this section only if no questions are given.)
+## 6. उपाय
+## आशीर्वाद  (2–3 lines)` },
+  questions: { en: `- Format in Markdown with exactly these two sections, in this order (no other sections, no remedies, no closing):
+## Chart overview
+(Two or three paragraphs: Lagna and its lord, Moon sign and nakshatra, key strong and weak placements, the running Mahadasha/Antardasha, and the placements most relevant to the questions.)
+## Answers to your questions
+(One ### heading per question, restating it. Answer each in depth: the relevant houses and their lords, dasha/antardasha timing with date windows, transits, and practical guidance.)`,
+    hi: `- Format in Markdown with exactly these two sections, in this order (headings in Hindi exactly as below; no other sections, no remedies, no closing):
+## कुंडली परिचय
+(दो-तीन अनुच्छेद: लग्न और लग्नेश, चंद्र राशि और नक्षत्र, प्रमुख बलवान व कमज़ोर ग्रह, चल रही महादशा/अंतर्दशा, और प्रश्नों से जुड़े ग्रह-योग।)
+## आपके प्रश्नों के उत्तर
+(One ### heading per question, restating it in Hindi. Answer each in depth: relevant houses and lords, dasha/antardasha timing with date windows, transits, practical guidance.)` }
+};
+const LANG = {
+  en: 'LANGUAGE: Write in clear, warm English. Sanskrit terms may appear with a short English gloss.',
+  hi: 'LANGUAGE: Write the ENTIRE report in Hindi, in Devanagari script — simple, respectful, flowing Hindi (आप form). Use standard Jyotish terms: लग्न, राशि, नक्षत्र, भाव, भावेश, महादशा, अंतर्दशा, गोचर, उपाय, साढ़े साती. Planet names in Hindi (सूर्य, चंद्र, मंगल, बुध, गुरु, शुक्र, शनि, राहु, केतु). Write years and dates in numerals (e.g. 2027, 24 Jan 2029). Mantras in Devanagari.'
+};
+const TASK = {
+  full: 'Prepare a complete personal Vedic astrology report: chart overview, all 12 areas of life, lifetime outlook, current period, answers and remedies.',
+  questions: 'Prepare a focused personal Vedic astrology consultation: a chart overview, then the client\'s questions answered in depth. Write only those two sections — no 12-areas, lifetime outlook, remedies or closing.'
+};
+const OPEN = { full: { en: '## 1. Chart overview', hi: '## 1. कुंडली परिचय' }, questions: { en: '## Chart overview', hi: '## कुंडली परिचय' } };
+function buildPrompt(chart, birth, scope, lang, qs, notes) {
+  const sys = `${SYS}\n${FORMATS[scope][lang]}\n${LANG[lang]}`;
+  const prompt = `${TASK[scope]} Today is ${fmtDate(Date.now())}.
+
+CLIENT CHART (computed):
+${chartForAI(chart, birth)}
+
+CLIENT QUESTIONS:
+${qs.length ? qs.map((q, i) => `${i + 1}. ${q}`).join('\n') : '(none — omit the answers section)'}
+${notes ? `\nASTROLOGER'S NOTES (follow these): ${notes}` : ''}
+
+Write only the report in Markdown, starting with "${OPEN[scope][lang]}".`;
+  return { sys, prompt };
+}
+// Number the report's own headings so they continue after the four chart sections (5, 6, ...); the closing blessing stays unnumbered
+function renumber(md, scope, start = 5) {
+  let n = start;
+  return String(md).replace(/^## (.+)$/gm, (m, t) => { const had = /^\d+\.\s+/.test(t); if (scope === 'full' && !had) return m; return `## ${n++}. ${t.replace(/^\d+\.\s+/, '')}`; });
+}
+return { renumber, fmtDate, t12, offStr, SN, SE, chartSummary, BHAVA, ASPECTS, houses, lifeDashas, chartForAI, my, ORD, SYS, FORMATS, LANG, TASK, buildPrompt };
+};
+if (typeof module !== 'undefined') module.exports = CORE;
 
 </script>
 <script>
 {
+const { renumber, fmtDate, t12, offStr, SN, SE, chartSummary, BHAVA, houses, lifeDashas, chartForAI, my, ORD } = CORE(AS);
 /* ---------------- city data (offline) ---------------- */
 const IN = `Delhi|Delhi|28.61|77.21;New Delhi|Delhi|28.61|77.21;Mumbai|Maharashtra|19.08|72.88;Kolkata|West Bengal|22.57|88.36;Chennai|Tamil Nadu|13.08|80.27;Bengaluru|Karnataka|12.97|77.59;Hyderabad|Telangana|17.39|78.49;Ahmedabad|Gujarat|23.02|72.57;Pune|Maharashtra|18.52|73.86;Surat|Gujarat|21.17|72.83;Jaipur|Rajasthan|26.91|75.79;Lucknow|Uttar Pradesh|26.85|80.95;Kanpur|Uttar Pradesh|26.45|80.33;Nagpur|Maharashtra|21.15|79.09;Indore|Madhya Pradesh|22.72|75.86;Thane|Maharashtra|19.22|72.98;Bhopal|Madhya Pradesh|23.26|77.41;Visakhapatnam|Andhra Pradesh|17.69|83.22;Patna|Bihar|25.59|85.14;Vadodara|Gujarat|22.31|73.18;Ghaziabad|Uttar Pradesh|28.67|77.45;Ludhiana|Punjab|30.90|75.86;Agra|Uttar Pradesh|27.18|78.01;Nashik|Maharashtra|20.00|73.79;Faridabad|Haryana|28.41|77.32;Meerut|Uttar Pradesh|28.98|77.71;Rajkot|Gujarat|22.30|70.80;Varanasi|Uttar Pradesh|25.32|82.97;Srinagar|Jammu & Kashmir|34.08|74.80;Aurangabad|Maharashtra|19.88|75.34;Dhanbad|Jharkhand|23.80|86.43;Amritsar|Punjab|31.63|74.87;Prayagraj (Allahabad)|Uttar Pradesh|25.44|81.85;Ranchi|Jharkhand|23.34|85.31;Howrah|West Bengal|22.59|88.31;Coimbatore|Tamil Nadu|11.02|76.96;Jabalpur|Madhya Pradesh|23.18|79.99;Gwalior|Madhya Pradesh|26.22|78.18;Vijayawada|Andhra Pradesh|16.51|80.65;Jodhpur|Rajasthan|26.24|73.02;Madurai|Tamil Nadu|9.93|78.12;Raipur|Chhattisgarh|21.25|81.63;Kota|Rajasthan|25.21|75.86;Guwahati|Assam|26.14|91.74;Chandigarh|Chandigarh|30.73|76.78;Solapur|Maharashtra|17.66|75.91;Bareilly|Uttar Pradesh|28.37|79.43;Moradabad|Uttar Pradesh|28.84|78.77;Mysuru|Karnataka|12.30|76.64;Gurugram|Haryana|28.46|77.03;Aligarh|Uttar Pradesh|27.88|78.08;Jalandhar|Punjab|31.33|75.58;Tiruchirappalli|Tamil Nadu|10.79|78.70;Bhubaneswar|Odisha|20.30|85.82;Salem|Tamil Nadu|11.66|78.15;Thiruvananthapuram|Kerala|8.52|76.94;Kochi|Kerala|9.93|76.27;Kozhikode|Kerala|11.26|75.78;Thrissur|Kerala|10.53|76.21;Warangal|Telangana|17.97|79.59;Guntur|Andhra Pradesh|16.31|80.44;Saharanpur|Uttar Pradesh|29.96|77.55;Gorakhpur|Uttar Pradesh|26.76|83.37;Bikaner|Rajasthan|28.02|73.31;Amravati|Maharashtra|20.93|77.75;Noida|Uttar Pradesh|28.54|77.39;Jamshedpur|Jharkhand|22.80|86.20;Bhilai|Chhattisgarh|21.21|81.38;Cuttack|Odisha|20.46|85.88;Dehradun|Uttarakhand|30.32|78.03;Haridwar|Uttarakhand|29.95|78.16;Rishikesh|Uttarakhand|30.09|78.27;Udaipur|Rajasthan|24.59|73.71;Ajmer|Rajasthan|26.45|74.64;Ujjain|Madhya Pradesh|23.18|75.78;Mathura|Uttar Pradesh|27.49|77.67;Vrindavan|Uttar Pradesh|27.58|77.70;Ayodhya|Uttar Pradesh|26.80|82.20;Puri|Odisha|19.81|85.83;Shimla|Himachal Pradesh|31.10|77.17;Jammu|Jammu & Kashmir|32.73|74.86;Panaji|Goa|15.49|73.83;Margao|Goa|15.28|73.96;Mangaluru|Karnataka|12.91|74.86;Hubballi|Karnataka|15.36|75.12;Belagavi|Karnataka|15.85|74.50;Tirupati|Andhra Pradesh|13.63|79.42;Nellore|Andhra Pradesh|14.44|79.99;Kurnool|Andhra Pradesh|15.83|78.04;Rajahmundry|Andhra Pradesh|17.00|81.80;Kakinada|Andhra Pradesh|16.99|82.25;Puducherry|Puducherry|11.94|79.81;Vellore|Tamil Nadu|12.92|79.13;Tirunelveli|Tamil Nadu|8.71|77.76;Erode|Tamil Nadu|11.34|77.72;Thanjavur|Tamil Nadu|10.79|79.14;Kanchipuram|Tamil Nadu|12.83|79.70;Siliguri|West Bengal|26.73|88.40;Durgapur|West Bengal|23.52|87.31;Asansol|West Bengal|23.68|86.98;Gaya|Bihar|24.79|85.00;Bhagalpur|Bihar|25.24|86.97;Muzaffarpur|Bihar|26.12|85.39;Darbhanga|Bihar|26.15|85.90;Imphal|Manipur|24.82|93.94;Shillong|Meghalaya|25.58|91.89;Agartala|Tripura|23.83|91.29;Aizawl|Mizoram|23.73|92.72;Kohima|Nagaland|25.67|94.11;Itanagar|Arunachal Pradesh|27.08|93.61;Gangtok|Sikkim|27.33|88.61;Dibrugarh|Assam|27.47|94.91;Jorhat|Assam|26.75|94.20;Silchar|Assam|24.83|92.80;Rourkela|Odisha|22.26|84.85;Sambalpur|Odisha|21.47|83.97;Bilaspur|Chhattisgarh|22.08|82.15;Jhansi|Uttar Pradesh|25.45|78.57;Kolhapur|Maharashtra|16.70|74.24;Sangli|Maharashtra|16.85|74.58;Nanded|Maharashtra|19.15|77.31;Akola|Maharashtra|20.71|77.00;Jalgaon|Maharashtra|21.01|75.56;Ahmednagar|Maharashtra|19.09|74.74;Navi Mumbai|Maharashtra|19.03|73.03;Bhavnagar|Gujarat|21.76|72.15;Jamnagar|Gujarat|22.47|70.06;Junagadh|Gujarat|21.52|70.46;Gandhinagar|Gujarat|23.22|72.65;Anand|Gujarat|22.56|72.95;Bhuj|Gujarat|23.24|69.67;Dwarka|Gujarat|22.24|68.97;Patiala|Punjab|30.34|76.39;Bathinda|Punjab|30.21|74.95;Panipat|Haryana|29.39|76.97;Karnal|Haryana|29.69|76.99;Rohtak|Haryana|28.90|76.61;Hisar|Haryana|29.15|75.72;Ambala|Haryana|30.38|76.78;Kurukshetra|Haryana|29.97|76.88;Alwar|Rajasthan|27.55|76.60;Bharatpur|Rajasthan|27.22|77.49;Sikar|Rajasthan|27.61|75.14;Pushkar|Rajasthan|26.49|74.55;Firozabad|Uttar Pradesh|27.15|78.40;Rewa|Madhya Pradesh|24.53|81.30;Satna|Madhya Pradesh|24.60|80.83;Sagar|Madhya Pradesh|23.84|78.74;Ratlam|Madhya Pradesh|23.33|75.04;Haldwani|Uttarakhand|29.22|79.51;Nainital|Uttarakhand|29.38|79.46;Mirzapur|Uttar Pradesh|25.15|82.57;Azamgarh|Uttar Pradesh|26.07|83.18;Jaunpur|Uttar Pradesh|25.75|82.69;Dharamshala|Himachal Pradesh|32.22|76.32;Mandi|Himachal Pradesh|31.71|76.93;Leh|Ladakh|34.15|77.58;Port Blair|Andaman & Nicobar|11.62|92.73`;
 const WORLD = `Kathmandu|Nepal|27.72|85.32|Asia/Kathmandu;Dhaka|Bangladesh|23.81|90.41|Asia/Dhaka;Colombo|Sri Lanka|6.93|79.86|Asia/Colombo;Karachi|Pakistan|24.86|67.01|Asia/Karachi;Lahore|Pakistan|31.55|74.34|Asia/Karachi;Dubai|UAE|25.20|55.27|Asia/Dubai;Abu Dhabi|UAE|24.45|54.38|Asia/Dubai;Sharjah|UAE|25.35|55.42|Asia/Dubai;Doha|Qatar|25.29|51.53|Asia/Qatar;Muscat|Oman|23.59|58.41|Asia/Muscat;Riyadh|Saudi Arabia|24.71|46.68|Asia/Riyadh;Jeddah|Saudi Arabia|21.49|39.19|Asia/Riyadh;Kuwait City|Kuwait|29.38|47.99|Asia/Kuwait;Singapore|Singapore|1.35|103.82|Asia/Singapore;Kuala Lumpur|Malaysia|3.14|101.69|Asia/Kuala_Lumpur;Bangkok|Thailand|13.76|100.50|Asia/Bangkok;Hong Kong|China|22.32|114.17|Asia/Hong_Kong;Tokyo|Japan|35.68|139.69|Asia/Tokyo;Sydney|Australia|-33.87|151.21|Australia/Sydney;Melbourne|Australia|-37.81|144.96|Australia/Melbourne;Perth|Australia|-31.95|115.86|Australia/Perth;Auckland|New Zealand|-36.85|174.76|Pacific/Auckland;London|UK|51.51|-0.13|Europe/London;Leicester|UK|52.64|-1.13|Europe/London;Birmingham|UK|52.49|-1.89|Europe/London;Paris|France|48.86|2.35|Europe/Paris;Berlin|Germany|52.52|13.40|Europe/Berlin;Frankfurt|Germany|50.11|8.68|Europe/Berlin;Amsterdam|Netherlands|52.37|4.90|Europe/Amsterdam;New York|USA|40.71|-74.01|America/New_York;Edison, NJ|USA|40.52|-74.41|America/New_York;Washington DC|USA|38.91|-77.04|America/New_York;Boston|USA|42.36|-71.06|America/New_York;Atlanta|USA|33.75|-84.39|America/New_York;Chicago|USA|41.88|-87.63|America/Chicago;Houston|USA|29.76|-95.37|America/Chicago;Dallas|USA|32.78|-96.80|America/Chicago;San Francisco|USA|37.77|-122.42|America/Los_Angeles;San Jose|USA|37.34|-121.89|America/Los_Angeles;Los Angeles|USA|34.05|-118.24|America/Los_Angeles;Seattle|USA|47.61|-122.33|America/Los_Angeles;Toronto|Canada|43.65|-79.38|America/Toronto;Vancouver|Canada|49.28|-123.12|America/Vancouver;Johannesburg|South Africa|-26.20|28.05|Africa/Johannesburg;Durban|South Africa|-29.86|31.02|Africa/Johannesburg;Nairobi|Kenya|-1.29|36.82|Africa/Nairobi;Port Louis|Mauritius|-20.16|57.50|Indian/Mauritius`;
@@ -555,11 +666,6 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 let tt; const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3200); };
-const fmtDate = ms => new Date(ms).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-const t12 = t => { const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
-const offStr = m => { const s = m < 0 ? '-' : '+', a = Math.abs(m); return `UTC${s}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`; };
-const SN = AS.SIGNS.map(s => s.split(' ')[0]);
-const SE = AS.SIGNS.map(s => s.match(/\((.+)\)/)[1]);
 async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('Copied'); } catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); toast('Copied'); } catch (_) { toast('Copy not allowed here'); } a.remove(); } }
 const digits = s => String(s || '').replace(/\D/g, '');
 const forget = (...ks) => ks.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
@@ -686,47 +792,6 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 }));
 
 /* ---------------- cast & render ---------------- */
-function chartSummary(c, b) {
-  const P = c.P, L = [];
-  L.push(`Name: ${b.name}`, `Gender: ${b.gender}`, `Birth date: ${b.dob}`, `Birth time: ${b.tobUnknown ? '12:00 (time not known)' : b.tob}`, `Place: ${b.placeLabel}`, `Coordinates: ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)} (${b.tz || offStr(c.offsetMin)})`);
-  L.push(`Lagna: ${AS.SIGNS[c.asc.sign]} ${c.asc.deg}, ${c.asc.nak.name} pada ${c.asc.nak.pada}`);
-  L.push(`Moon (Rashi): ${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}, Nakshatra ${P.Moon.nak.name} pada ${P.Moon.nak.pada}`);
-  L.push(`Dasha now: ${c.md ? c.md.lord : '—'} Mahadasha / ${c.ad ? c.ad.lord : '—'} Antardasha (till ${c.ad ? fmtDate(c.ad.end) : '—'})`);
-  return L.join('\n');
-}
-const BHAVA = [['Tanu', 'Self, body, personality, vitality'], ['Dhana', 'Wealth, family, speech, food'], ['Sahaja', 'Courage, siblings, communication, short travel'],
-  ['Sukha', 'Mother, home, property, vehicles, inner peace'], ['Putra', 'Children, education, intelligence, creativity'], ['Ripu', 'Health, debts, enemies, competition, service'],
-  ['Kalatra', 'Marriage, spouse, partnerships, business'], ['Ayu', 'Transformation, inheritance, research, sudden events'], ['Dharma', 'Fortune, father, guru, faith, higher learning'],
-  ['Karma', 'Career, status, authority, reputation'], ['Labha', 'Gains, income, friends, wishes fulfilled'], ['Vyaya', 'Expenses, foreign lands, sleep, spirituality, moksha']];
-const ASPECTS = { Mars: [4, 7, 8], Jupiter: [5, 7, 9], Saturn: [3, 7, 10] };
-function houses(c) {
-  return BHAVA.map(([nm, area], i) => {
-    const h = i + 1, sign = (c.asc.sign + i) % 12, lord = AS.LORD[sign], L = c.P[lord];
-    const occ = c.planets.filter(p => p.house === h).map(p => p.name);
-    const asp = c.planets.filter(p => p.name !== 'Rahu' && p.name !== 'Ketu' && (ASPECTS[p.name] || [7]).some(n => (p.house - 1 + n - 1) % 12 + 1 === h)).map(p => p.name);
-    return { h, nm, area, sign, lord, lordHouse: L.house, lordSign: L.sign, lordDig: L.dignity, lordRetro: L.retro, occ, asp };
-  });
-}
-const lifeDashas = c => c.vim.list.filter(x => x.start < c.utcMs + 100 * AS.YEAR).map(x => ({ ...x, a0: Math.max(0, (x.start - c.utcMs) / AS.YEAR), a1: (x.end - c.utcMs) / AS.YEAR }));
-function chartForAI(c, b) {
-  const rows = c.planets.map(p => `${p.name}: ${AS.SIGNS[p.sign]} ${p.deg}, house ${p.house}, ${p.nak.name} pada ${p.nak.pada} (lord ${p.nak.lord})${p.retro ? ', retrograde' : ''}${p.dignity ? ', ' + p.dignity : ''}`);
-  const md = lifeDashas(c).map(x => `${x.lord} MD ${fmtDate(Math.max(x.start, c.utcMs))} – ${fmtDate(x.end)} (age ${Math.floor(x.a0)}–${Math.floor(x.a1)})`);
-  const hs = houses(c).map(x => `House ${x.h} ${x.nm} (${x.area}): ${AS.SIGNS[x.sign]}; lord ${x.lord} in house ${x.lordHouse} (${SN[x.lordSign]}${x.lordDig ? ', ' + x.lordDig : ''}${x.lordRetro ? ', R' : ''}); occupants: ${x.occ.join(', ') || 'none'}; aspected by: ${x.asp.join(', ') || 'none'}`);
-  const ad = c.md ? c.md.subs.map(x => `${x.lord} AD ${fmtDate(x.start)} – ${fmtDate(x.end)}`) : [];
-  return `${chartSummary(c, b)}
-Ayanamsa (Lahiri): ${c.ayanamsa.toFixed(3)}°, whole-sign houses, mean nodes
-Lagna lord: ${c.lagnaLord}; Moon-sign lord: ${c.moonLord}
-Planets:\n${rows.join('\n')}
-Panchang at birth: ${c.panchang.vara}, ${c.panchang.tithi}, Yoga ${c.panchang.yoga}
-Houses (whole-sign, Parashari aspects; Mars 4/7/8, Jupiter 5/7/9, Saturn 3/7/10):\n${hs.join('\n')}
-Lifetime Mahadasha sequence (from birth):\n${md.join('\n')}
-Antardashas in current Mahadasha:\n${ad.join('\n')}
-Current transits (today ${fmtDate(Date.now())}): ${c.transits.map(t => `${t.name} in ${AS.SIGNS[t.sign]} ${t.deg} (${t.fromMoon} from Moon, ${t.fromLagna} from Lagna)${t.retro && t.name !== 'Rahu' && t.name !== 'Ketu' ? ' R' : ''}`).join('; ')}
-Sade Sati status: ${c.sadeSati}
-Mars placement: house ${c.manglik.house} (${c.manglik.is ? 'Mangal dosha by lagna' : 'no Mangal dosha by lagna'})`;
-}
-const my = ms => new Date(ms).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
-const ORD = n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
 function chartOverview(c) {   // a plain-language summary built only from the computed chart
   const P = c.P, L = P[c.lagnaLord], M = P.Moon, dig = p => p.dignity ? ` (${p.dignity.toLowerCase()})` : '';
   const strong = c.planets.filter(p => p.dignity === 'Exalted' || p.dignity === 'Own sign').map(p => `${p.name} ${p.dignity === 'Exalted' ? 'exalted' : 'in its own sign'} in ${SN[p.sign]}`);
@@ -774,11 +839,10 @@ $('birthForm').addEventListener('submit', e => {
   const [y, mo, d] = dob.split('-').map(Number), [h, mi] = tob.split(':').map(Number);
   try { chart = AS.cast({ y, mo, d, h, mi, lat: place.lat, lon: place.lon, tz: place.tz, offsetMin: place.tz ? null : place.offsetMin }); }
   catch (err) { console.error(err); return toast('Could not compute this chart. Check the details.'); }
-  birth = { name, gender: $('gd').value, dob, tob, tobUnknown, placeLabel: $('pob').value.trim(), lat: place.lat, lon: place.lon, tz: place.tz };
+  birth = { name, gender: $('gd').value, dob, tob, tobUnknown, placeLabel: $('pob').value.trim(), lat: place.lat, lon: place.lon, tz: place.tz, offsetMin: place.tz ? null : place.offsetMin };
   if ($('remember').checked) store.set('jy_last', { birth, place }); else forget('jy_last', 'jy_contact');
   renderChart();
-  if (isAdmin()) paintGen();
-  if (window.innerWidth < 980 || isAdmin()) $('chartCard').scrollIntoView({ behavior: 'smooth' });
+  if (window.innerWidth < 980) $('chartCard').scrollIntoView({ behavior: 'smooth' });
 });
 $('copyChart').addEventListener('click', () => chart && copyText(chartSummary(chart, birth) + `\nPlanets: ${chart.planets.map(p => `${p.abbr} ${AS.SHORT[p.sign]} ${p.deg}`).join(', ')}`));
 
@@ -824,6 +888,7 @@ $('proceed').addEventListener('click', async () => {
     try { order.sealed = await seal(JSON.stringify({ qs }), id); }
     catch (e) { console.error(e); toast('Could not seal questions on this browser; they will be sent as plain text'); }
   }
+  await Promise.race([payCfg, new Promise(r => setTimeout(r, 4000))]);
   const upi = `upi://pay?pa=${encodeURIComponent(CONFIG.UPI_ID)}&pn=${encodeURIComponent(CONFIG.PAYEE_NAME)}&am=${plan.price.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Jyotish ' + id)}`;
   $('payAmt').textContent = `₹${plan.price}`; $('payPlan').textContent = `${plan.title} · was ₹${plan.mrp}`;
   $('upiId').textContent = CONFIG.UPI_ID; $('upiLink').href = upi; $('ordId').textContent = id; $('pEmail').value = email;
@@ -833,381 +898,185 @@ $('proceed').addEventListener('click', async () => {
 });
 $('copyUpi').addEventListener('click', () => copyText(CONFIG.UPI_ID));
 $('backPlans').addEventListener('click', () => { $('payCard').classList.add('hide'); $('askCard').classList.remove('hide'); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
-$('shotLater').addEventListener('change', () => $('sendHint').classList.toggle('hide', !$('shotLater').checked));
-function orderMessage() {
-  const o = order, b = birth;
-  return `*New Jyotish consultation*
-Order: ${o.id}
-Plan: ${o.plan.title} – Rs ${o.plan.price}
-Report type: ${o.plan.scope === 'full' ? 'Full life report' : 'Answers only'}
-Language: ${o.lang === 'hi' ? 'Hindi' : 'English'}
-UTR: ${o.utr || 'not given'}
-Email: ${o.email}
-WhatsApp: ${o.phone}
-
-*Birth details*
-${chartSummary(chart, b)}
-
-${o.sealed ? `*Questions* (sealed, only Nakshatra Darpan can open)\n${o.sealed}` : `*Questions*\n${o.qs.map((q, i) => `${i + 1}. ${q}`).join('\n')}`}
-
-${o.hasShot ? 'Payment screenshot: I will send it next in this chat.' : 'Payment reference: UTR above.'}`;
+const api = async (op, data = {}, auth = false) => {
+  if (!CONFIG.API_URL) throw new Error('Ordering is not switched on yet. Please contact us on WhatsApp.');
+  const h = { 'content-type': 'application/json' };
+  if (auth) { const u = window.firebase && firebase.apps.length ? firebase.auth().currentUser : null; if (!u) throw new Error('Please sign in again'); h.authorization = 'Bearer ' + await u.getIdToken(); }
+  let r; try { r = await fetch(CONFIG.API_URL, { method: 'POST', headers: h, body: JSON.stringify({ op, ...data }) }); } catch (e) { throw new Error('Could not reach the server. Check your internet and try again.'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || `Server error ${r.status}`);
+  return j;
+};
+async function shrinkShot(file) {   // phone screenshots are several MB; send a ~150 KB JPEG instead
+  const url = URL.createObjectURL(file);
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('That file could not be read as an image. Try a normal screenshot (JPG or PNG).')); i.src = url; });
+  let max = 1100, q = 0.72, out = '';
+  for (let k = 0; k < 6; k++) {
+    const s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); out = c.toDataURL('image/jpeg', q);
+    if (out.length < 300000) break; max *= 0.8; q -= 0.08;
+  }
+  URL.revokeObjectURL(url);
+  if (out.length >= 320000) throw new Error('Screenshot is too large. Please crop it and try again.');
+  return out;
 }
-$('sendWa').addEventListener('click', () => {
-  const utr = $('utr').value.trim(), email = $('pEmail').value.trim(), later = $('shotLater').checked;
-  if (!utr && !later) return toast('Enter the UTR, or tick that you’ll send the payment screenshot'), $('utr').focus();
-  if (utr && digits(utr).length < 6 && utr.length < 8) return toast('That UTR looks too short. Check it, or clear it and tick the screenshot option'), $('utr').focus();
-  if (!emailOk(email)) return toast('Enter a valid email'), $('pEmail').focus();
-  order.utr = utr; order.email = email; order.hasShot = later;
-  const url = `https://wa.me/${waNum(CONFIG.WHATSAPP)}?text=${encodeURIComponent(orderMessage())}`;
-  $('waAgain').href = url;
-  const w = window.open(url, '_blank'); if (!w) toast('Tap “Open WhatsApp” to continue');
-  $('dNote').textContent = later ? 'WhatsApp opened with your birth details and questions filled in. Tap send, then send the screenshot as shown above.'
-    : 'WhatsApp opened with your birth details, questions and UTR filled in. Just tap send in that chat.';
-  $('dShot').classList.toggle('hide', !later);
-  $('payCard').classList.add('hide'); $('doneCard').classList.remove('hide');
-  $('dName').textContent = birth.name.split(' ')[0]; $('dOrd').textContent = order.id; $('dPlan').textContent = `${order.plan.title} · ₹${order.plan.price} · ${order.lang === 'hi' ? 'हिन्दी' : 'English'}`;
-  const s = hoursState();
-  $('dHours').classList.toggle('on', s.open);
-  $('dHours').innerHTML = s.open ? `We're open now (${esc(CONFIG.HOURS.label)}). Expect your report on WhatsApp and email today.`
-    : `We're offline right now. Your report will be prepared during business hours, ${esc(CONFIG.HOURS.label)}, ${s.before ? 'later today' : 'from tomorrow morning'}.`;
-  $('doneCard').scrollIntoView({ behavior: 'smooth' });
+// UPI details can be changed in the Lambda (UPI_ID, UPI_NAME) without editing this page
+const payCfg = CONFIG.API_URL ? api('config').then(c => { if (c.upiId) CONFIG.UPI_ID = c.upiId; if (c.upiName) CONFIG.PAYEE_NAME = c.upiName; }).catch(() => {}) : Promise.resolve();
+$('shotFile').addEventListener('change', () => {
+  const f = $('shotFile').files[0], img = $('shotPrev');
+  if (!f) return img.classList.add('hide');
+  img.src = URL.createObjectURL(f); img.classList.remove('hide'); $('shotLater').checked = false;
 });
+$('shotLater').addEventListener('change', () => { if ($('shotLater').checked) { $('shotFile').value = ''; $('shotPrev').classList.add('hide'); } });
+$('submitOrder').addEventListener('click', async () => {
+  const utr = $('utr').value.trim().replace(/\s+/g, ''), email = $('pEmail').value.trim(), later = $('shotLater').checked, file = $('shotFile').files[0];
+  if (!utr && !file && !later) return toast('Enter the UTR, or upload the payment screenshot'), $('utr').focus();
+  if (utr && !/^[A-Za-z0-9]{6,24}$/.test(utr)) return toast('That UTR looks wrong. It is usually 12 digits'), $('utr').focus();
+  if (!emailOk(email)) return toast('Enter a valid email'), $('pEmail').focus();
+  const btn = $('submitOrder'), label = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Submitting…';
+  try {
+    const shot = file ? await shrinkShot(file) : '';
+    const payload = { id: order.id, planId: order.plan.id, price: order.plan.price, email, phone: order.phone, lang: order.lang, birth, utr, shot, shotLater: later && !shot };
+    if (order.sealed) payload.sealed = order.sealed; else payload.qs = order.qs;
+    await api('create', payload);
+    order.email = email; order.utr = utr; order.hasShot = !!shot; order.later = later && !shot;
+    try { sessionStorage.setItem('nd_ord', JSON.stringify({ id: order.id, email })); } catch (e) {}
+    $('dName').textContent = birth.name.split(' ')[0]; $('dOrd').textContent = order.id; $('dPlan').textContent = `${order.plan.title} · ₹${order.plan.price} · ${order.lang === 'hi' ? 'हिन्दी' : 'English'}`;
+    $('dShot').classList.toggle('hide', !order.later);
+    $('waAgain').classList.toggle('hide', !order.later);
+    $('waAgain').href = `https://wa.me/${waNum(CONFIG.WHATSAPP)}?text=${encodeURIComponent(`Order ${order.id}: sending my payment screenshot (Rs ${order.plan.price}).`)}`;
+    const s = hoursState();
+    $('dHours').classList.toggle('on', s.open);
+    $('dHours').innerHTML = s.open ? `We're open now (${esc(CONFIG.HOURS.label)}). Your payment will be verified shortly.` : `We're offline right now. Your payment will be verified during business hours, ${esc(CONFIG.HOURS.label)}, ${s.before ? 'later today' : 'from tomorrow morning'}.`;
+    $('dNote').textContent = `Once it is verified, your report is prepared and emailed to ${email} as a PDF. You can also open it here for 7 days with your email and order ID.`;
+    $('payCard').classList.add('hide'); $('doneCard').classList.remove('hide'); $('doneCard').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { toast(e.message || 'Could not submit. Please try again'); }
+  finally { btn.disabled = false; btn.textContent = label; }
+});
+$('dTrack').addEventListener('click', () => { $('tEmail').value = order ? order.email : ''; $('tId').value = order ? order.id : ''; });
 $('newAsk').addEventListener('click', () => { $('doneCard').classList.add('hide'); $('askCard').classList.remove('hide'); plan = null; $('qBox').innerHTML = ''; renderPlans(); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
 
-/* ---------------- admin ---------------- */
-const isAdmin = () => { try { return sessionStorage.getItem('jy_admin') === '1'; } catch (e) { return false; } };
-function paintGen() {
-  $('genStatus').textContent = chart ? `Chart ready for ${birth.name}. Add the questions, then generate.` : 'Cast the client’s chart in step 2 first.';
-  $('genBtn').disabled = !chart;
-}
-function showAdmin(on) {
-  document.body.classList.toggle('admin-on', on);
-  $('castBtn').textContent = on ? 'Cast client chart' : 'Generate my free Kundli';
-  $('formCard').querySelector('.step').textContent = on ? '2 · Client birth details' : 'Step 1 · Birth details';
-  $('formCard').querySelector('h2').textContent = on ? 'Client details' : 'Janam details';
-  $('chartCard').querySelector('.step').textContent = on ? '3 · Client chart' : 'Step 2 · Your free chart';
-  paintGen();
-  if (on) renderHist();
-}
-function askPin() { if (isAdmin()) { showAdmin(true); $('adminTop').scrollIntoView({ behavior: 'smooth' }); return; } $('pin').value = ''; $('pinDlg').showModal(); }
-const hexB = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
-const bHex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-async function verifyPin(pin) {   // PBKDF2-SHA256; only the salted hash ships with the site
-  const parts = String(CONFIG.ADMIN_PIN_HASH).split('$');
-  if (parts[0] !== 'pbkdf2' || parts.length !== 4) throw new Error('Admin PIN is not set up on this site yet');
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: hexB(parts[2]), iterations: +parts[1] }, key, 256);
-  return bHex(bits) === parts[3];
-}
-$('pinForm').addEventListener('submit', async e => {
-  if (e.submitter && e.submitter.value === 'cancel') return;
-  e.preventDefault();
-  const f = store.get('jy_pinfail', { n: 0, until: 0 });
-  if (Date.now() < f.until) return toast(`Too many attempts. Try again in ${Math.ceil((f.until - Date.now()) / 60000)} min`);
-  $('pinOk').disabled = true;
-  try {
-    if (await verifyPin($('pin').value)) {
-      store.set('jy_pinfail', { n: 0, until: 0 });
-      try { sessionStorage.setItem('jy_admin', '1'); } catch (_) {}
-      $('pinDlg').close(); showAdmin(true); toast('Admin studio unlocked'); window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const n = f.n + 1; store.set('jy_pinfail', { n: n >= 5 ? 0 : n, until: n >= 5 ? Date.now() + 10 * 60000 : 0 });
-      toast(n >= 5 ? 'Too many attempts. Locked for 10 minutes' : 'Wrong PIN'); $('pin').select();
-    }
-  } catch (err) { toast(err.message || 'Could not check PIN'); }
-  finally { $('pinOk').disabled = false; }
-});
-$('lockBtn').addEventListener('click', () => { try { sessionStorage.removeItem('jy_admin'); } catch (_) {} showAdmin(false); $('reportCard').classList.add('hide'); });
-if (location.hash === '#admin') askPin(); else if (isAdmin()) showAdmin(true);
-window.addEventListener('hashchange', () => { if (location.hash === '#admin') askPin(); });
-
-const DEF = { gemini: 'gemini-flash-latest', claude: 'claude-sonnet-5-5' };
-const getSet = () => store.get('jy_ai', { prov: 'gemini', key: '', model: '' });
-function paintSetHelp() {
-  const p = $('sProv').value; $('sModel').placeholder = DEF[p];
-  $('sHelp').innerHTML = p === 'gemini' ? 'Free key: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Leave the model blank for the default.'
-    : 'Paid key: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Usage is billed per token.';
-}
-$('setBtn').addEventListener('click', () => { $('sTestOut').className = 'status hide'; const s = getSet(); $('sProv').value = s.prov; $('sKey').value = s.key; $('sModel').value = s.model; paintSetHelp(); $('setDlg').showModal(); });
-$('sProv').addEventListener('change', paintSetHelp);
-$('sTest').addEventListener('click', async () => {
-  const out = $('sTestOut'), key = $('sKey').value.trim(), prov = $('sProv').value;
-  out.className = 'status'; out.textContent = 'Checking…';
-  if (!key) { out.className = 'status err'; out.textContent = 'Paste a key first.'; return; }
-  try {
-    if (prov === 'gemini') {
-      const list = await geminiModels(key), want = $('sModel').value.trim();
-      if (want && !list.includes(want)) { const p = pickFlash(list); $('sModel').value = p || ''; out.className = 'status on'; out.textContent = `Key works. "${want}" isn't available, so I set the model to ${p}. Tap Save.`; }
-      else { const p = want || pickFlash(list); if (!want) $('sModel').value = p || ''; out.className = 'status on'; out.textContent = `Key works. Model: ${p}. Tap Save.`; }
-    } else {
-      const r = await fetch('https://api.anthropic.com/v1/models', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(`Claude ${r.status}: ${j?.error?.message || 'request failed'}`);
-      out.className = 'status on'; out.textContent = `Key works. Model: ${$('sModel').value.trim() || DEF.claude}. Tap Save.`;
-    }
-  } catch (e) { out.className = 'status err'; out.textContent = `${e.message} — ${aiHint(e.message)}`; }
-});
-$('sSave').addEventListener('click', () => { store.set('jy_ai', { prov: $('sProv').value, key: $('sKey').value.trim(), model: $('sModel').value.trim() }); toast('AI settings saved on this device'); });
-
-const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-const getKeys = () => store.get('nd_sealkeys', []);
-function paintKey() {
-  const k = getKeys();
-  $('keyStatus').innerHTML = k.length ? `Sealed questions: <b style="color:var(--gold2)">key imported</b> (${k.length}). This browser can open sealed orders.` : 'Sealed questions: no key in this browser. Import the backup file from Report Studio → Secret questions to open sealed orders here.';
-  $('keyForget').classList.toggle('hide', !k.length);
-}
-async function unseal(token, aad) {
-  const keys = getKeys();
-  if (!keys.length) throw new Error('No sealing key in this browser. Tap “Import key backup” and choose the file from Report Studio.');
-  const [, ek, iv, ct] = token.split('.');
-  for (const k of keys) {
-    try {
-      const priv = await crypto.subtle.importKey('pkcs8', fromB64(k.priv), { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
-      const raw = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, fromB64(ek));
-      const aes = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
-      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(iv), additionalData: new TextEncoder().encode(aad || '') }, aes, fromB64(ct));
-      return JSON.parse(new TextDecoder().decode(pt));
-    } catch (_) {}
-  }
-  throw new Error('These questions were sealed with a different key, or the order text was changed. Paste the full original message.');
-}
-$('keyFile').addEventListener('change', async () => {
-  const f = $('keyFile').files[0]; $('keyFile').value = ''; if (!f) return;
-  try {
-    const inc = (JSON.parse(await f.text()).keys || []).filter(k => k.pub && k.priv); if (!inc.length) throw 0;
-    const m = getKeys(); inc.forEach(k => { if (!m.some(x => x.pub === k.pub)) m.push(k); });
-    m.sort((a, b) => b.created - a.created); store.set('nd_sealkeys', m.slice(0, 5)); paintKey(); toast('Key imported into this browser');
-  } catch (_) { toast('That file isn’t a Nakshatra Darpan key backup'); }
-});
-let forgetArm = false;
-$('keyForget').addEventListener('click', () => {
-  if (!forgetArm) { forgetArm = true; $('keyForget').textContent = 'Tap again to remove'; setTimeout(() => { forgetArm = false; $('keyForget').textContent = 'Remove key from this browser'; }, 4000); return; }
-  forgetArm = false; forget('nd_sealkeys'); paintKey(); $('keyForget').textContent = 'Remove key from this browser'; toast('Key removed from this browser');
-});
-function paintScope() {
-  $('scopeNote').textContent = $('scope').value === 'questions'
-    ? 'Birth chart details, Graha positions, 12 Bhavas, lifetime Mahadasha, then the chart overview and answers to each question.'
-    : 'Everything: birth chart tables, chart overview, all 12 areas of life, lifetime outlook, current Dasha, answers and remedies.';
-}
-{ const o = store.get('jy_opts', {}); if (o.lang) $('lang').value = o.lang; if (o.scope) $('scope').value = o.scope; }
-$('scope').addEventListener('change', paintScope); paintScope(); paintKey();
-$('newClient').addEventListener('click', () => {
-  ['nm', 'dob', 'tob', 'pob', 'aPhone', 'aEmail', 'aQs', 'aNotes', 'orderPaste'].forEach(id => $(id).value = '');
-  $('tobU').checked = false; $('tob').disabled = false; place = null; chart = null; birth = null; syncPh();
-  $('coordLine').innerHTML = '<span>Coordinates fill in automatically when you pick a place.</span>';
-  ['chartCard', 'reportCard'].forEach(id => $(id).classList.add('hide')); $('aiErr').classList.add('hide'); paintGen();
-  $('formCard').scrollIntoView({ behavior: 'smooth' }); $('nm').focus();
-});
-$('parseBtn').addEventListener('click', () => {
-  const t = $('orderPaste').value, g = k => { const m = t.match(new RegExp('^\\s*' + k + ':\\s*(.+)$', 'mi')); return m ? m[1].trim() : ''; };
-  if (!g('Name')) return toast('Could not read this order');
-  $('nm').value = g('Name'); const gd = g('Gender'); if (gd) $('gd').value = ['Male', 'Female', 'Other'].includes(gd) ? gd : 'Other';
-  $('dob').value = g('Birth date');
-  const bt = g('Birth time'); $('tobU').checked = /not known/i.test(bt); $('tob').value = bt.slice(0, 5) || '12:00'; $('tob').disabled = $('tobU').checked;
-  const co = g('Coordinates').match(/(-?[\d.]+),\s*(-?[\d.]+)\s*\(([^)]+)\)/), pl = g('Place');
-  if (co) {
-    const zone = co[3], om = zone.match(/UTC([+-])(\d+):(\d+)/);
-    setPlace({ name: pl, region: '', label: pl, lat: +co[1], lon: +co[2], tz: om ? null : zone, offsetMin: om ? (om[1] === '-' ? -1 : 1) * (+om[2] * 60 + +om[3]) : null });
-  }
-  $('aEmail').value = g('Email'); $('aPhone').value = g('WhatsApp');
-  const lg = g('Language'), rt = g('Report type'), plan = g('Plan');
-  if (lg) $('lang').value = /hindi|हिन्दी/i.test(lg) ? 'hi' : 'en';
-  if (rt || plan) $('scope').value = /full/i.test(rt || plan) ? 'full' : 'questions';
-  paintScope();
-  const qm = t.split(/^\s*\*?Questions\*?\s*$/mi)[1] || '';
-  $('aQs').value = qm.split('\n').map(l => l.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(l => l && !/^payment (screenshot|reference)|screenshot attached/i.test(l)).join('\n');
-  syncPh(); $('birthForm').requestSubmit();
-  const sealed = t.match(/ND1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+/);
-  if (!sealed) return toast('Order loaded and chart cast');
-  $('aQs').value = ''; $('aQs').placeholder = 'Opening sealed questions…';
-  unseal(sealed[0], g('Order')).then(o => { $('aQs').value = (o.qs || []).join('\n'); toast('Order loaded · sealed questions opened'); })
-    .catch(e => { $('aQs').placeholder = 'Sealed questions could not be opened'; $('aiErr').innerHTML = `<b style="color:#f19a86">Sealed questions not opened</b><br>${esc(e.message)}`; $('aiErr').classList.remove('hide'); });
-});
-
-const SYS = `You are an experienced, compassionate Vedic astrologer (Jyotishi) trained in Parashari and Jaimini methods. You write personal consultation reports.
-Rules:
-- The chart data given is computed precisely (sidereal, Lahiri). Treat it as ground truth. Never recalculate or contradict positions, houses, nakshatras or dasha dates.
-- Answer every client question directly, using specific placements, house lords, dasha/antardasha timing and transits, with date windows where the data supports them.
-- Tone: dignified, warm, empowering. Frame difficult placements as karmic lessons with practical guidance. No fear-mongering, no guarantees, no medical, legal or financial instructions; suggest professional help where relevant.
-- Remedies (Upayas): mantras with counts, dana (charity) by weekday, fasting, lifestyle and seva. Gemstones only as optional with the caveat to consult an expert first.
-- Life areas: never predict death, age at death or lifespan figures, and never diagnose illness. For the 8th house speak of transformation, research, inheritance and resilience; for health speak of tendencies and care.`;
-const FORMATS = {
-  full: { en: `- Format in Markdown with ALL of these sections, every time, in this order:
-## 1. Chart overview
-(Lagna, Moon sign, Nakshatra, key yogas, dignities and overall nature of the chart.)
-## 2. The 12 areas of life
-Write one ### heading for each of the 12 houses in order, e.g. "### 1st house · Tanu — Self & vitality". Under each: 
-**Strength:** one of Strong / Good / Mixed / Needs care, with one line why (sign, lord placement, occupants, aspects).
-Then 3–5 sentences: what this area promises, its strengths and challenges, and which Mahadasha/Antardasha periods (with ages or years) activate it.
-## 3. Lifetime outlook
-Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadasha with years and ages): main themes, which areas of life rise, what to prepare for. Mark the period running now.
-## 4. Dasha and transits now
-## 5. Answers to your questions
-(One ### heading per question, restating it. Omit this section only if no questions are given.)
-## 6. Upayas (remedies)
-## Closing blessing  (2–3 lines)`,
-    hi: `- Format in Markdown with ALL of these sections, every time, in this order (headings in Hindi exactly as below):
-## 1. कुंडली परिचय
-(लग्न, चंद्र राशि, नक्षत्र, प्रमुख योग, ग्रहों का बल और कुंडली का समग्र स्वभाव।)
-## 2. जीवन के 12 क्षेत्र
-Write one ### heading for each of the 12 houses in order, e.g. "### प्रथम भाव · तनु — स्वयं और स्वास्थ्य". Under each:
-**बल:** one of प्रबल / अच्छा / मिश्रित / सावधानी आवश्यक, with one line why (sign, lord placement, occupants, aspects).
-Then 3–5 sentences: what this area promises, strengths and challenges, and which Mahadasha/Antardasha periods (with ages or years) activate it.
-## 3. जीवनकाल की दिशा
-Walk through life Mahadasha by Mahadasha from birth (one ### heading per Mahadasha with years and ages). Mark the period running now.
-## 4. वर्तमान दशा और गोचर
-## 5. आपके प्रश्नों के उत्तर
-(One ### heading per question, restating it in Hindi. Omit this section only if no questions are given.)
-## 6. उपाय
-## आशीर्वाद  (2–3 lines)` },
-  questions: { en: `- Format in Markdown with exactly these two sections, in this order (no other sections, no remedies, no closing):
-## Chart overview
-(Two or three paragraphs: Lagna and its lord, Moon sign and nakshatra, key strong and weak placements, the running Mahadasha/Antardasha, and the placements most relevant to the questions.)
-## Answers to your questions
-(One ### heading per question, restating it. Answer each in depth: the relevant houses and their lords, dasha/antardasha timing with date windows, transits, and practical guidance.)`,
-    hi: `- Format in Markdown with exactly these two sections, in this order (headings in Hindi exactly as below; no other sections, no remedies, no closing):
-## कुंडली परिचय
-(दो-तीन अनुच्छेद: लग्न और लग्नेश, चंद्र राशि और नक्षत्र, प्रमुख बलवान व कमज़ोर ग्रह, चल रही महादशा/अंतर्दशा, और प्रश्नों से जुड़े ग्रह-योग।)
-## आपके प्रश्नों के उत्तर
-(One ### heading per question, restating it in Hindi. Answer each in depth: relevant houses and lords, dasha/antardasha timing with date windows, transits, practical guidance.)` }
-};
-const LANG = {
-  en: 'LANGUAGE: Write in clear, warm English. Sanskrit terms may appear with a short English gloss.',
-  hi: 'LANGUAGE: Write the ENTIRE report in Hindi, in Devanagari script — simple, respectful, flowing Hindi (आप form). Use standard Jyotish terms: लग्न, राशि, नक्षत्र, भाव, भावेश, महादशा, अंतर्दशा, गोचर, उपाय, साढ़े साती. Planet names in Hindi (सूर्य, चंद्र, मंगल, बुध, गुरु, शुक्र, शनि, राहु, केतु). Write years and dates in numerals (e.g. 2027, 24 Jan 2029). Mantras in Devanagari.'
-};
-const TASK = {
-  full: 'Prepare a complete personal Vedic astrology report: chart overview, all 12 areas of life, lifetime outlook, current period, answers and remedies.',
-  questions: 'Prepare a focused personal Vedic astrology consultation: a chart overview, then the client\'s questions answered in depth. Write only those two sections — no 12-areas, lifetime outlook, remedies or closing.'
-};
-async function geminiModels(key) {
-  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`Gemini ${r.status}: ${j?.error?.message || 'could not list models'}`);
-  return (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
-}
-function rankFlash(list) {   // best Flash first, Flash-Lite as last resort
-  const ok = list.filter(n => /flash/i.test(n) && !/(image|tts|audio|live|embed|8b)/i.test(n));
-  const score = n => { const v = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0); return v * 10 + (/latest/.test(n) ? 1 : 0) - (/preview|exp/.test(n) ? 8 : 0) - (/lite/.test(n) ? 100 : 0); };
-  return ok.sort((a, b) => score(b) - score(a));
-}
-const pickFlash = list => rankFlash(list)[0] || null;
-function aiHint(m) {
-  if (/API key not valid|API_KEY_INVALID|invalid x-api-key|authentication/i.test(m)) return 'The key was rejected. Copy it again from AI Studio (no spaces) and paste it in AI settings.';
-  if (/429|quota|RESOURCE_EXHAUSTED|rate/i.test(m)) return 'Free-tier limit reached on every model tried. Wait a while (daily quota resets at 1:30 PM IST) or enable billing on the key’s Google project.';
-  if (/referer|referrer|PERMISSION_DENIED|403/i.test(m)) return 'The key has restrictions. In Google Cloud console → Credentials, allow your site (e.g. https://shashank-labs.github.io/*) or remove the restriction.';
-  if (/\b50[03]\b|high demand|overloaded|UNAVAILABLE/i.test(m)) return 'Google’s servers were busy for every model tried. This is temporary: wait 5–10 minutes and tap Generate again. Nothing is wrong with your key.';
-  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'The request was blocked before reaching Google. Check your internet, and turn off any ad-blocker or data-saver for this site.';
-  if (/location|region|not available in your country/i.test(m)) return 'The API isn’t available from your network location.';
-  return 'Open AI settings and tap “Test key” to check the key and model.';
-}
-async function callAI(prompt, sys = SYS) {
-  const s = getSet(); if (!s.key) { $('setBtn').click(); throw new Error('Add your API key in AI settings first'); }
-  let model = s.model || DEF[s.prov];
-  if (s.prov === 'claude') {
-    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': s.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model, max_tokens: 16000, system: sys, messages: [{ role: 'user', content: prompt }] }) });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error?.message || `Claude error ${r.status}`);
-    return (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('\n');
-  }
-  let delay = 1500, switched = false, cfg = { maxOutputTokens: 16384 }, busy = 0, models = null;
-  const tried = new Set([model]);
-  for (let a = 0; a < 9; a++) {
-    const body = { systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }] };
-    if (cfg) body.generationConfig = cfg;
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': s.key }, body: JSON.stringify(body) });
-    const j = await r.json().catch(() => ({})), msg = j?.error?.message || '';
-    if (r.ok) {
-      const c = j?.candidates?.[0], t = (c?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
-      if (t) return t;
-      throw new Error(`Gemini returned no text (${j?.promptFeedback?.blockReason ? 'blocked: ' + j.promptFeedback.blockReason : c?.finishReason || 'unknown reason'}). Try again.`);
-    }
-    if (!switched && (r.status === 404 || /not found|not supported|unknown model|invalid model/i.test(msg))) {   // model renamed or retired: pick a current one
-      const pick = pickFlash(await geminiModels(s.key));
-      if (!pick) throw new Error(`Model "${model}" isn't available and no Flash model was found for this key.`);
-      model = pick; switched = true; store.set('jy_ai', { ...s, model: pick }); toast(`Switched to model ${pick}`); continue;
-    }
-    if (cfg && r.status === 400 && /output.?tokens/i.test(msg)) { cfg = null; continue; }
-    const quota0 = r.status === 429 && /limit: ?0\b|free_tier|per ?day|PerDay/i.test(msg);
-    if ((r.status >= 500 || r.status === 429) && (quota0 || ++busy >= 2)) {   // model busy or out of free quota: try the next-best model the key can use
-      models = models || await geminiModels(s.key).catch(() => []);
-      const alt = rankFlash(models).find(n => !tried.has(n));
-      if (alt) { tried.add(alt); model = alt; busy = 0; delay = 1500; toast(`${r.status === 429 ? 'Quota used up' : 'Model busy'} on that model, trying ${alt}`); continue; }
-    }
-    if ((r.status === 429 || r.status >= 500) && a < 8) { await new Promise(res => setTimeout(res, delay)); delay = Math.min(delay * 2, 8000); continue; }
-    throw new Error(`Gemini ${r.status} (${model}, tried: ${[...tried].join(', ')}): ${msg || 'request failed'}`);
-  }
-}
-let report = null;
+/* ---------------- report view (customer) ---------------- */
 const md2html = md => { const s = String(md).replace(/</g, '&lt;'); return window.marked ? marked.parse(s) : '<p>' + s.replace(/\n/g, '<br>') + '</p>'; };
-const plain = md => String(md).replace(/^#{1,6}\s*/gm, '').replace(/\*\*(.+?)\*\*/g, '*$1*').replace(/^\s*[-*]\s+/gm, '• ').replace(/\n{3,}/g, '\n\n');
 function chartDetailsHTML(c, b, scope) {
   const P = c.P, row = a => `<tr>${a.map(x => `<td>${esc(x)}</td>`).join('')}</tr>`;
   const kv = a => `<div class="kv">${a.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
-  return `<h2>Birth chart details</h2>
+  return `<h2>1. Birth chart details</h2>
   <p>${esc(b.name)} · ${esc(b.gender)} · ${esc(b.dob)} · ${b.tobUnknown ? 'time not known (12:00 used)' : esc(t12(b.tob))} · ${esc(b.placeLabel)} · ${b.lat.toFixed(2)}, ${b.lon.toFixed(2)} (${esc(b.tz || offStr(c.offsetMin))})</p>
   <div class="kwrap"><div>${kundliSVG(c, style)}${kLegend(style)}</div><div>${kv([['Lagna', `${AS.SIGNS[c.asc.sign]} ${c.asc.deg}`], ['Chandra Rashi', `${AS.SIGNS[P.Moon.sign]} ${P.Moon.deg}`], ['Janma Nakshatra', `${P.Moon.nak.name} pada ${P.Moon.nak.pada}`], ['Surya Rashi', AS.SIGNS[P.Sun.sign]],
     ['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Yoga', c.panchang.yoga], ['Running Dasha', c.md ? `${c.md.lord} / ${c.ad.lord} till ${fmtDate(c.ad.end)}` : '—'], ...(scope === 'questions' ? [] : [['Sade Sati', c.sadeSati], ['Mangal dosha', c.manglik.is ? `Present (Mars house ${c.manglik.house})` : 'Not present']]), ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']])}</div></div>
-  <h3>Graha positions</h3><div class="scroll"><table><thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Note</th></tr></thead><tbody>${c.planets.map(p => row([p.name, SN[p.sign], p.deg, `${p.nak.name} ${p.nak.pada}`, p.house, [p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? 'Retrograde' : '', p.dignity].filter(Boolean).join(', ')])).join('')}</tbody></table></div>
-  <h3>12 Bhavas</h3><div class="scroll"><table><thead><tr><th>House</th><th>Area</th><th>Rashi</th><th>Lord in</th><th>Occupants</th></tr></thead><tbody>${houses(c).map(x => row([`${x.h} ${x.nm}`, x.area, SN[x.sign], `${x.lord} → ${x.lordHouse}`, x.occ.join(', ') || '—'])).join('')}</tbody></table></div>
-  <h3>Lifetime Vimshottari Mahadasha</h3><div class="scroll"><table><thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Age</th></tr></thead><tbody>${lifeDashas(c).map(x => row([x.lord + (x === c.md ? ' (now)' : ''), fmtDate(Math.max(x.start, c.utcMs)), fmtDate(x.end), `${Math.floor(x.a0)}–${Math.floor(x.a1)}`])).join('')}</tbody></table></div>
+  <h3>2. Graha positions</h3><div class="scroll"><table><thead><tr><th>Graha</th><th>Rashi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Note</th></tr></thead><tbody>${c.planets.map(p => row([p.name, SN[p.sign], p.deg, `${p.nak.name} ${p.nak.pada}`, p.house, [p.retro && p.name !== 'Rahu' && p.name !== 'Ketu' ? 'Retrograde' : '', p.dignity].filter(Boolean).join(', ')])).join('')}</tbody></table></div>
+  <h3>3. 12 Bhavas</h3><div class="scroll"><table><thead><tr><th>House</th><th>Area</th><th>Rashi</th><th>Lord in</th><th>Occupants</th></tr></thead><tbody>${houses(c).map(x => row([`${x.h} ${x.nm}`, x.area, SN[x.sign], `${x.lord} → ${x.lordHouse}`, x.occ.join(', ') || '—'])).join('')}</tbody></table></div>
+  <h3>4. Lifetime Vimshottari Mahadasha</h3><div class="scroll"><table><thead><tr><th>Mahadasha</th><th>From</th><th>To</th><th>Age</th></tr></thead><tbody>${lifeDashas(c).map(x => row([x.lord + (x === c.md ? ' (now)' : ''), fmtDate(Math.max(x.start, c.utcMs)), fmtDate(x.end), `${Math.floor(x.a0)}–${Math.floor(x.a1)}`])).join('')}</tbody></table></div>
   <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">`;
 }
-const reportText = r => `🙏 ${CONFIG.BUSINESS_NAME} · Jyotish report for ${r.name}\n\n${chartSummary(chart, birth)}\nPlanets: ${chart.planets.map(p => `${p.name} ${SN[p.sign]} ${p.deg} (H${p.house})`).join(', ')}\n\n${plain(r.md)}`;
-function showReport(r) {
-  report = r; $('reportCard').classList.remove('hide');
-  $('rTitle').textContent = `Report · ${r.name}`; $('rBody').innerHTML = chartDetailsHTML(chart, birth, r.scope) + md2html(r.md);
-  const txt = reportText(r);
-  $('rWa').href = r.phone ? `https://wa.me/${waNum(r.phone)}?text=${encodeURIComponent(`🙏 Namaste ${r.name.split(' ')[0]}, your Jyotish report from ${CONFIG.BUSINESS_NAME} is ready. Sharing it here.`)}` : '#';
-  $('rWa').classList.toggle('hide', !r.phone);
-  $('rMail').href = `mailto:${encodeURIComponent(r.email || '')}?subject=${encodeURIComponent('Your Jyotish report – ' + r.name)}&body=${encodeURIComponent(txt.slice(0, 1800) + (txt.length > 1800 ? '\n\n(Full report attached)' : ''))}`;
-  $('reportCard').scrollIntoView({ behavior: 'smooth' });
-}
-$('genBtn').addEventListener('click', async () => {
-  if (!chart) return toast('Cast the client chart first (left form)');
-  const qs = $('aQs').value.split('\n').map(s => s.trim()).filter(Boolean);
-  const lang = $('lang').value, scope = $('scope').value;
-  if (scope === 'questions' && !qs.length) return toast('Add at least one question for an answers-only report'), $('aQs').focus();
-  $('aiErr').classList.add('hide');
-  const btn = $('genBtn'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Writing report…';
+const castBirth = b => { const [y, mo, d] = b.dob.split('-').map(Number), [h, mi] = b.tob.split(':').map(Number); return AS.cast({ y, mo, d, h, mi, lat: b.lat, lon: b.lon, tz: b.tz || undefined, offsetMin: b.tz ? null : b.offsetMin }); };
+let tracked = null, trackTimer = null;
+const SAY = {
+  pending: ['⏳ Payment under review', 'We are verifying your payment. This is done during business hours, ' + CONFIG.HOURS.label + '. You will get an email as soon as your report is ready.'],
+  approved: ['✅ Payment confirmed', 'Your report is being prepared. It usually takes a few minutes. This page refreshes by itself.'],
+  generating: ['✍️ Writing your report', 'Your personal report is being written now. This page refreshes by itself.'],
+  failed: ['⏳ Taking longer than usual', 'Your payment is confirmed and we are finishing your report. You will receive it by email shortly.'],
+};
+async function checkReport(quiet) {
+  const email = $('tEmail').value.trim(), id = $('tId').value.trim().toUpperCase();
+  if (!emailOk(email) || !id) return toast('Enter your email and order ID');
+  const st = $('tStatus'), btn = $('tGo'); if (!quiet) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Checking…'; }
+  clearTimeout(trackTimer);
   try {
-    const sys = `${SYS}\n${FORMATS[scope][lang]}\n${LANG[lang]}`;
-    const prompt = `${TASK[scope]} Today is ${fmtDate(Date.now())}.
-
-CLIENT CHART (computed):
-${chartForAI(chart, birth)}
-
-CLIENT QUESTIONS:
-${qs.length ? qs.map((q, i) => `${i + 1}. ${q}`).join('\n') : '(none — omit the answers section)'}
-${$('aNotes').value.trim() ? `\nASTROLOGER'S NOTES (follow these): ${$('aNotes').value.trim()}` : ''}
-
-Write only the report in Markdown, starting with "${{ full: { en: '## 1. Chart overview', hi: '## 1. कुंडली परिचय' }, questions: { en: '## Chart overview', hi: '## कुंडली परिचय' } }[scope][lang]}".`;
-    store.set('jy_opts', { lang, scope });
-    const md = await callAI(prompt, sys);
-    const r = { id: 'r' + Date.now(), name: birth.name, date: Date.now(), phone: $('aPhone').value.trim(), email: $('aEmail').value.trim(), qs, md, birth, place, lang, scope, notes: $('aNotes').value.trim() };
-    const h = store.get('jy_reports', []); h.unshift(r); store.set('jy_reports', h.slice(0, 60)); renderHist();
-    showReport(r); toast('Report ready');
-  } catch (err) { const m = err.message || 'AI request failed'; $('aiErr').innerHTML = `<b style="color:#f19a86">Report not generated</b><br>${esc(m)}<br><br>${esc(aiHint(m))}`; $('aiErr').classList.remove('hide'); console.error(err); }
-  finally { btn.disabled = false; btn.textContent = 'Generate report'; }
-});
-function renderHist() {
-  const h = store.get('jy_reports', []);
-  $('hist').innerHTML = h.length ? h.map(r => `<div><span><b style="color:var(--gold2)">${esc(r.name)}</b><br><small style="color:var(--mut)">${fmtDate(r.date)} · ${r.scope === 'questions' ? 'Answers only' : 'Full report'}${r.qs && r.qs.length ? ` · ${r.qs.length} question${r.qs.length > 1 ? 's' : ''}` : ''}${r.lang === 'hi' ? ' · हिन्दी' : ''}</small></span><span class="btns"><button class="btn sm" data-open="${esc(r.id)}">Open</button><button class="btn sm" data-del="${esc(r.id)}" aria-label="Delete">✕</button></span></div>`).join('')
-    : '<p class="note">Reports you generate are kept on this device.</p>';
+    const r = await api('status', { email, id });
+    st.classList.remove('hide', 'err');
+    if (r.status === 'ready' && r.report) {
+      st.innerHTML = `<b style="color:var(--gold2)">✅ Your report is ready</b><br>Order ${esc(r.id)} · ${esc(r.plan.title)}. Available until ${fmtDate(r.expiresAt)}.`;
+      tracked = r; const c = castBirth(r.report.birth);
+      $('rTitle').textContent = `Report · ${r.name}`; $('rExp').textContent = `Available until ${fmtDate(r.expiresAt)}. Download the PDF to keep it.`;
+      $('rBody').innerHTML = chartDetailsHTML(c, r.report.birth, r.report.scope) + md2html(renumber(r.report.md, r.report.scope));
+      $('reportCard').classList.remove('hide'); if (!quiet) $('reportCard').scrollIntoView({ behavior: 'smooth' });
+    } else if (r.status === 'rejected') {
+      $('reportCard').classList.add('hide');
+      st.classList.add('err'); st.innerHTML = `<b style="color:#f19a86">We could not confirm this payment</b><br>Reason: ${esc(r.rejectReason || 'Payment not found')}.<br>If you have paid, reply to our email with your payment screenshot and UTR, or order again.`;
+    } else {
+      $('reportCard').classList.add('hide');
+      const [h, m] = SAY[r.status] || SAY.pending; st.innerHTML = `<b style="color:var(--gold2)">${h}</b><br>Order ${esc(r.id)} · ${esc(r.plan.title)}<br>${esc(m)}`;
+      trackTimer = setTimeout(() => location.hash === '#report' && checkReport(true), 20000);
+    }
+  } catch (e) { st.classList.remove('hide'); st.classList.add('err'); st.textContent = e.message; $('reportCard').classList.add('hide'); }
+  finally { btn.disabled = false; btn.textContent = 'Check'; }
 }
-$('hist').addEventListener('click', e => {
-  const o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]'), h = store.get('jy_reports', []);
-  if (o) { const r = h.find(x => x.id === o.dataset.open); if (r) { if (r.birth) { birth = r.birth; place = r.place; const [y, mo, dd] = r.birth.dob.split('-').map(Number), [hh, mi] = r.birth.tob.split(':').map(Number); chart = AS.cast({ y, mo, d: dd, h: hh, mi, lat: r.birth.lat, lon: r.birth.lon, tz: r.birth.tz, offsetMin: r.birth.tz ? null : r.place && r.place.offsetMin }); renderChart(); } showReport(r); } }
-  if (o) { const r = h.find(x => x.id === o.dataset.open); if (r) { $('aQs').value = (r.qs || []).join('\n'); $('aPhone').value = r.phone || ''; $('aEmail').value = r.email || ''; if (r.lang) $('lang').value = r.lang; if (r.scope) $('scope').value = r.scope; paintScope(); } }
-  if (d) { store.set('jy_reports', h.filter(x => x.id !== d.dataset.del)); renderHist(); }
+$('trackForm').addEventListener('submit', e => { e.preventDefault(); checkReport(false); });
+$('rPdf').addEventListener('click', async () => {
+  if (!tracked) return; const b = $('rPdf'), l = b.textContent; b.disabled = true; b.innerHTML = '<span class="spin"></span> Preparing…';
+  try {
+    const r = await api('pdf', { email: $('tEmail').value.trim(), id: tracked.id });
+    const bin = Uint8Array.from(atob(r.pdf), c => c.charCodeAt(0)), url = URL.createObjectURL(new Blob([bin], { type: 'application/pdf' })), a = document.createElement('a');
+    a.href = url; a.download = r.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (e) { toast(e.message); } finally { b.disabled = false; b.textContent = l; }
 });
-$('rCopy').addEventListener('click', () => report && copyText(reportText(report)));
-$('rWa').addEventListener('click', () => { if (report) { copyText(reportText(report)); setTimeout(() => toast('Full report copied. Paste it in the chat, or attach the PDF.'), 400); } });
 $('rPrint').addEventListener('click', () => {
-  if (!report) return;
-  $('printArea').innerHTML = `<h1>${esc(CONFIG.BUSINESS_NAME)} · Jyotish report</h1>${chartDetailsHTML(chart, birth, report.scope)}${md2html(report.md)}<p style="font-size:10pt;color:#555">Guidance for reflection; not a substitute for professional advice.</p>`;
-  try { window.print(); } catch (e) { toast('Printing is blocked here. Use Copy instead.'); }
+  if (!tracked) return; const rp = tracked.report;
+  $('printArea').innerHTML = `<h1>${esc(CONFIG.BUSINESS_NAME)} · Jyotish report</h1>${chartDetailsHTML(castBirth(rp.birth), rp.birth, rp.scope)}${md2html(renumber(rp.md, rp.scope))}<p style="font-size:10pt;color:#555">Guidance for reflection; not a substitute for professional advice.</p>`;
+  try { window.print(); } catch (e) { toast('Printing is blocked here. Use Download PDF.'); }
 });
+
+/* ---------------- admin: payment review (Google sign-in) ---------------- */
+let fbReady = false, orders = [], aTab = 'review', aTimer = null;
+const when = ms => new Date(ms).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+const SLAB = { pending: ['Needs review', 'warn'], approved: ['Approved · queued', 'ok'], generating: ['Writing report…', 'ok'], ready: ['Report sent', 'ok'], failed: ['Failed', 'bad'], rejected: ['Rejected', 'bad'] };
+const TABS = { review: o => o.status === 'pending', work: o => ['approved', 'generating', 'failed'].includes(o.status), done: o => ['ready', 'rejected'].includes(o.status) };
+function aShow(which, msg) { $('aLogin').classList.toggle('hide', which !== 'login'); $('aMain').classList.toggle('hide', which !== 'main'); if (msg !== undefined) $('aMsg').textContent = msg; }
+function initAdmin(n = 0) {
+  if (fbReady) return loadOrders();
+  if (!window.firebase) { if (n > 40) return aShow('login', 'Could not load Google sign-in. Check your internet and reload.'); return void setTimeout(() => initAdmin(n + 1), 250); }
+  firebase.initializeApp(CONFIG.FIREBASE); fbReady = true;
+  firebase.auth().onAuthStateChanged(u => { if (!u) { clearInterval(aTimer); return aShow('login', ''); } $('aWho').textContent = `Signed in as ${u.email}`; aShow('main'); loadOrders(); clearInterval(aTimer); aTimer = setInterval(() => document.body.classList.contains('mode-admin') && !document.hidden && loadOrders(true), 30000); });
+}
+$('gSign').addEventListener('click', async () => {
+  if (!window.firebase) return toast('Still loading, try again in a moment');
+  const pr = new firebase.auth.GoogleAuthProvider();
+  try { await firebase.auth().signInWithPopup(pr); }
+  catch (e) { if (/popup/.test(e.code || '')) firebase.auth().signInWithRedirect(pr); else if (e.code !== 'auth/cancelled-popup-request' && e.code !== 'auth/popup-closed-by-user') $('aMsg').textContent = e.message; }
+});
+$('aOut').addEventListener('click', () => firebase.auth().signOut());
+$('aRefresh').addEventListener('click', () => loadOrders());
+$('aTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; aTab = b.dataset.t; document.querySelectorAll('#aTabs button').forEach(x => x.classList.toggle('on', x === b)); paintOrders(); });
+async function loadOrders(quiet) {
+  try { const r = await api('adminList', {}, true); orders = r.orders; paintOrders(); }
+  catch (e) { if (/not an admin/.test(e.message)) { aShow('login', e.message + '. Sign in with an admin account.'); firebase.auth().signOut(); } else if (!quiet) toast(e.message); }
+}
+function ordHTML(o) {
+  const [lab, cls] = SLAB[o.status] || [o.status, ''];
+  const acts = o.status === 'pending' ? `<div class="btns" style="margin-top:12px"><button class="btn pri sm" data-act="ap1">Approve</button><button class="btn sm" data-act="rj1">Reject</button>${o.hasShot ? '<button class="btn sm" data-act="shot">View screenshot</button>' : ''}</div><div class="confirm hide" data-box="ap"><b>Is ₹${o.plan.price} credited${o.utr ? ` with UTR ${esc(o.utr)}` : ' (check the screenshot)'}?</b><div class="btns" style="margin-top:8px"><button class="btn pri sm" data-act="ap2">Yes, approve and generate</button></div></div><div class="confirm hide" data-box="rj"><div class="f"><label>Reason (emailed to the customer)</label><select class="rjr"><option>Payment not received</option><option>Amount does not match the plan</option><option>UTR is incorrect</option><option>Screenshot unclear</option></select></div><button class="btn sm" data-act="rj2" style="border-color:rgba(224,87,58,.6)">Reject order</button></div><img class="shot hide" alt="Payment screenshot">`
+    : o.status === 'failed' ? `<div class="btns" style="margin-top:12px"><button class="btn pri sm" data-act="retry">Retry report</button></div>`
+    : o.status === 'ready' ? `<div class="btns" style="margin-top:12px"><button class="btn sm" data-act="resend">Resend email</button></div>` : '';
+  return `<div class="ord" data-id="${esc(o.id)}"><div class="top"><div><div class="amt">₹${o.plan.price}</div><div class="note" style="margin:2px 0 0">${esc(o.plan.title)} · ${o.lang === 'hi' ? 'Hindi' : 'English'}</div></div><div style="text-align:right"><span class="badge ${cls}">${esc(lab)}</span><div class="note" style="margin:6px 0 0">${esc(o.id)}<br>${when(o.createdAt)}</div></div></div>
+    <div class="meta"><b>${esc(o.name)}</b><br>${esc(o.email)} · <a href="https://wa.me/${waNum(o.phone)}" target="_blank" rel="noopener" style="color:var(--gold2)">${esc(o.phone)}</a><br>${o.utr ? `UTR <b>${esc(o.utr)}</b> <button class="btn sm" data-act="copy" data-v="${esc(o.utr)}" style="padding:2px 8px">Copy</button>` : ''}${o.shotLater ? '<br><b style="color:#f19a86">Screenshot promised on WhatsApp</b>' : ''}${o.hasShot && !o.utr ? '<br>Payment screenshot attached' : ''}${o.approvedBy ? `<br>Approved by ${esc(o.approvedBy)}` : ''}${o.rejectedBy ? `<br>Rejected by ${esc(o.rejectedBy)}: ${esc(o.rejectReason || '')}` : ''}${o.error ? `<br><span style="color:#f19a86">${esc(o.error)}</span>` : ''}${o.status === 'ready' && o.emailSent === false ? '<br><span style="color:#f19a86">Email could not be sent. Use Resend.</span>' : ''}</div>${acts}</div>`;
+}
+function paintOrders() {
+  const n = orders.filter(TABS.review).length; $('nReview').textContent = n ? `(${n})` : '';
+  const list = orders.filter(TABS[aTab]);
+  $('aList').innerHTML = list.length ? list.map(ordHTML).join('') : `<p class="note">${aTab === 'review' ? 'Nothing waiting for review 🎉' : 'Nothing here.'}</p>`;
+}
+$('aList').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return; const card = b.closest('.ord'), id = card.dataset.id, act = b.dataset.act;
+  const busy = async fn => { b.disabled = true; try { await fn(); } catch (err) { toast(err.message); } finally { b.disabled = false; } };
+  if (act === 'copy') return copyText(b.dataset.v);
+  if (act === 'ap1' || act === 'rj1') { const k = act === 'ap1' ? 'ap' : 'rj'; card.querySelectorAll('[data-box]').forEach(x => x.classList.toggle('hide', x.dataset.box !== k)); return; }
+  if (act === 'shot') return busy(async () => { const r = await api('adminShot', { id }, true), im = card.querySelector('img.shot'); im.src = r.shot; im.classList.remove('hide'); });
+  if (act === 'ap2') return busy(async () => { await api('adminApprove', { id }, true); toast('Approved. The report is being generated.'); await loadOrders(); });
+  if (act === 'rj2') return busy(async () => { await api('adminReject', { id, reason: card.querySelector('.rjr').value }, true); toast('Rejected. Customer emailed.'); await loadOrders(); });
+  if (act === 'retry') return busy(async () => { await api('adminRetry', { id }, true); toast('Retrying'); await loadOrders(); });
+  if (act === 'resend') return busy(async () => { await api('adminResend', { id }, true); toast('Email sent again'); });
+});
+
+/* ---------------- which screen: home, #report, #admin ---------------- */
+function route() {
+  const h = location.hash;
+  document.body.classList.toggle('mode-admin', h === '#admin'); document.body.classList.toggle('mode-track', h === '#report');
+  if (h === '#admin') initAdmin();
+  if (h === '#report') { try { const o = JSON.parse(sessionStorage.getItem('nd_ord') || 'null'); if (o && !$('tId').value) { $('tId').value = o.id; $('tEmail').value = o.email; } } catch (e) {} }
+  if (h === '#admin' || h === '#report') window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route); route();
 
 $('remember').addEventListener('change', () => { if (!$('remember').checked) forget('jy_last', 'jy_contact'); });
 $('clearAll').addEventListener('click', () => {
