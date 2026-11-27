@@ -310,6 +310,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
         </div>
         <div class="status" id="dHours"></div>
         <p class="note" id="dNote"></p>
+        <div class="status hide" id="dSpam"><b style="color:var(--gold2)">📩 Can't find our email?</b><br>Check your <b>Spam</b> or <b>Promotions</b> folder for mail from <b id="dFrom">Nakshatra Darpan (nakshatradarpan1008@gmail.com)</b>. If it is there, open it and tap <b>Report not spam</b> (or <b>Move to Inbox</b>) so our next emails, including your report, reach your inbox.</div>
         <div class="btns" style="margin-top:12px"><a class="btn pri" id="dTrack" href="#report">Check my report</a><button class="btn sm" type="button" id="newAsk">Ask more</button></div>
       </section>
     </div>
@@ -324,6 +325,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
       <div class="f"><label for="tId">Order ID</label><input id="tId" autocapitalize="characters" autocomplete="off" placeholder="ND261127-AB12"></div>
     </div><div class="btns"><button class="btn pri" id="tGo">Check</button><a class="btn sm" href="#">Back to home</a></div></form>
     <div class="status hide" id="tStatus"></div>
+    <p class="note">Emails from us sometimes land in <b>Spam</b> or <b>Promotions</b>. If you find one there, mark it <b>Not spam</b> so your report reaches your inbox.</p>
   </div>
   <section class="card hide" id="reportCard" style="margin-top:16px">
     <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 id="rTitle">Report</h2>
@@ -360,6 +362,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
    ================================================================ */
 const CONFIG = {
   BUSINESS_NAME: 'Nakshatra Darpan',
+  // UPI ID and payee name are set in the Lambda (UPI_ID, UPI_NAME), not here
   SEAL_KEY: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxQ1OM0Yaqv4ywGm4WabVE/mSZM2AoR1JXZ9OdXAoPc9KwmTB5IlHeL831rpq4hdIAWP6eEhBJyAlEqh8y7P5xNLQv8zfdNbkOIKuRmYeFU8yb7B/XURFgGcNk3Ihhrqx9aCRIVJIsYEEDgTgvE2+HGf7xcQkXO6K4o1GgjzqFtnv4pmwDiU6mCo/Tn1p8buFgqiscnxaWmLuaMPVz9+Ptz9sztdkgi4/ITWFs82npqpprrk87J5rQwdAhwrjf/X+8tARVEqwGepAkL3ECcIzuDg4fTWHwdCsY41zfj6b4zzhKLADH7iyDOHMDyqGZdXWxndRVHS6A1Sp19tY9062rwIDAQAB',                           // public key (from Report Studio → Secret questions). Empty = questions are stored unsealed
   API_URL: 'https://ah7optwnoldi2c3rns66hk4l7q0hypyt.lambda-url.ap-south-1.on.aws/',                            // Function URL of the Lambda (see DEPLOY.md), e.g. https://xxxx.lambda-url.ap-south-1.on.aws/
   FIREBASE: { apiKey: 'AIzaSyCwJX7kDN0-BaM5R79NzaOAalRpDyT-20w', authDomain: 'playrollit.firebaseapp.com', projectId: 'playrollit' },   // used only for admin Google sign-in
@@ -958,7 +961,8 @@ $('submitOrder').addEventListener('click', async () => {
     const s = hoursState();
     $('dHours').classList.toggle('on', s.open);
     $('dHours').innerHTML = s.open ? `We're open now (${esc(CONFIG.HOURS.label)}). Your payment will be verified shortly.` : `We're offline right now. Your payment will be verified during business hours, ${esc(CONFIG.HOURS.label)}, ${s.before ? 'later today' : 'from tomorrow morning'}.`;
-    $('dNote').textContent = `Once it is verified, your report is prepared and emailed to ${email} as a PDF. You can also open it here for 7 days with your email and order ID.`;
+    $('dNote').innerHTML = `Once it is verified, your report is prepared and emailed to <b>${esc(email)}</b> as a PDF. You can also open it here for 7 days with your email and order ID.`;
+    $('dSpam').classList.remove('hide');
     $('payCard').classList.add('hide'); $('doneCard').classList.remove('hide'); $('doneCard').scrollIntoView({ behavior: 'smooth' });
   } catch (e) { toast(e.message || 'Could not submit. Please try again'); }
   finally { btn.disabled = false; btn.textContent = label; }
