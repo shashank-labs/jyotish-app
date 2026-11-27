@@ -111,11 +111,14 @@ td.n{white-space:nowrap}
 .plan.on{border-color:var(--gold);background:rgba(212,175,55,.09);box-shadow:0 0 0 3px rgba(212,175,55,.12)}
 .plan .off{position:absolute;top:-10px;right:10px;background:var(--red);color:#fff;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
 .plan h4{margin:0;font-size:15px;font-weight:600}
-.plan .pr{display:flex;align-items:baseline;gap:8px;margin-top:8px}
-.plan .pr b{font-family:"Cormorant Garamond",serif;font-size:32px;color:var(--gold2);white-space:nowrap}
+.plan .pr{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin-top:8px}
+.plan .pr b{font-family:"Cormorant Garamond",serif;font-size:30px;color:var(--gold2);white-space:nowrap}
 .plan .pr s{color:var(--mut);font-size:14px;white-space:nowrap}
 .plan p{margin:4px 0 0;font-size:13px;color:var(--mut)}
 .plan .off{background:var(--gold);color:#1a1405}
+.plan .dc{flex-basis:auto;margin-top:2px;background:rgba(120,200,140,.16);color:#8fd6a0;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.addons s{color:var(--mut)}
+.addons .sv{display:flex;justify-content:space-between;color:#8fd6a0;font-size:13px;margin-top:4px}
 .plan .pq{font-size:12px;color:var(--gold2);margin-top:2px}
 .addons{margin:14px 0;padding:14px;border:1px dashed var(--line2);border-radius:14px}
 .addons h4{margin:0 0 10px;font-size:15px}
@@ -272,9 +275,10 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
         <div class="plans" id="plans"></div>
         <div class="addons hide" id="addons">
           <h4>Add to your order (optional)</h4>
-          <label class="ao"><span>Extra questions<br><small class="note">₹<span class="aq"></span> each</small></span><select id="extraQ"></select></label>
-          <label class="ao"><span><b>2027 Year Forecast</b><br><small class="note">Quarter-by-quarter guide for career, money, relationships and health · ₹<span class="af"></span></small></span><input type="checkbox" id="fcast" style="width:22px;height:22px"></label>
+          <label class="ao"><span>Extra questions<br><small class="note"><s>₹<span class="aqm"></span></s> ₹<span class="aq"></span> each</small></span><select id="extraQ"></select></label>
+          <label class="ao"><span><b>2027 Year Forecast</b><br><small class="note">Quarter-by-quarter guide for career, money, relationships and health · <s>₹<span class="afm"></span></s> ₹<span class="af"></span></small></span><input type="checkbox" id="fcast" style="width:22px;height:22px"></label>
           <div class="tot"><span>Total</span><span id="totAmt"></span></div>
+          <div class="sv"><span>You save</span><span id="totSave"></span></div>
         </div>
         <div class="addons hide" id="muhBox">
           <h4>Tell us about your event</h4>
@@ -384,16 +388,17 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
    ================================================================ */
 const CONFIG = {
   BUSINESS_NAME: 'Nakshatra Darpan',
-  SEAL_KEY: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxQ1OM0Yaqv4ywGm4WabVE/mSZM2AoR1JXZ9OdXAoPc9KwmTB5IlHeL831rpq4hdIAWP6eEhBJyAlEqh8y7P5xNLQv8zfdNbkOIKuRmYeFU8yb7B/XURFgGcNk3Ihhrqx9aCRIVJIsYEEDgTgvE2+HGf7xcQkXO6K4o1GgjzqFtnv4pmwDiU6mCo/Tn1p8buFgqiscnxaWmLuaMPVz9+Ptz9sztdkgi4/ITWFs82npqpprrk87J5rQwdAhwrjf/X+8tARVEqwGepAkL3ECcIzuDg4fTWHwdCsY41zfj6b4zzhKLADH7iyDOHMDyqGZdXWxndRVHS6A1Sp19tY9062rwIDAQAB',                           // public key (from Report Studio → Secret questions). Empty = questions are stored unsealed
-  API_URL: 'https://ah7optwnoldi2c3rns66hk4l7q0hypyt.lambda-url.ap-south-1.on.aws/',                            // Function URL of the Lambda (see DEPLOY.md), e.g. https://xxxx.lambda-url.ap-south-1.on.aws/
+  // UPI ID and payee name are set in the Lambda (UPI_ID, UPI_NAME), not here
+  SEAL_KEY: '',                           // public key (from Report Studio → Secret questions). Empty = questions are stored unsealed
+  API_URL: '',                            // Function URL of the Lambda (see DEPLOY.md), e.g. https://xxxx.lambda-url.ap-south-1.on.aws/
   FIREBASE: { apiKey: 'AIzaSyCwJX7kDN0-BaM5R79NzaOAalRpDyT-20w', authDomain: 'playrollit.firebaseapp.com', projectId: 'playrollit' },   // used only for admin Google sign-in
   HOURS: { open: 10, close: 18, label: '10 AM – 6 PM IST' },
-  ADDONS: { extraQ: 21, maxExtraQ: 3, forecast: 101 },   // keep in step with ADDONS in the Lambda
+  ADDONS: { extraQ: 21, extraQMrp: 101, maxExtraQ: 3, forecast: 101, forecastMrp: 351 },   // keep in step with ADDONS in the Lambda
   PLANS: [
-    { id: 'q1', title: '1 question', questions: 1, price: 31, scope: 'questions', note: 'Your full chart + a chart overview + 1 detailed answer' },
-    { id: 'q3', title: '3 questions', questions: 3, price: 71, scope: 'questions', tag: 'Most popular', note: 'Your full chart + a chart overview + 3 detailed answers' },
-    { id: 'full', title: 'Full life report + 3 questions', questions: 3, price: 151, scope: 'full', tag: 'Best value', note: 'Everything: all 12 areas of life, lifetime outlook, current Dasha & transits, Sade Sati, Mangal dosha, remedies, plus 3 answers' },
-    { id: 'muh', title: 'Muhurat (auspicious date & time)', questions: 1, price: 51, scope: 'muhurat', tag: 'New', note: 'Best dates and exact time windows for your event (marriage, griha pravesh, vehicle, business and more), matched to your own chart' }
+    { id: 'q1', title: 'Chart analysis + 1 question', questions: 1, price: 31, mrp: 151, scope: 'questions', note: 'Your full chart analysis (planets, houses, Dasha, overview) + 1 detailed answer' },
+    { id: 'q3', title: 'Chart analysis + 3 questions', questions: 3, price: 71, mrp: 251, scope: 'questions', tag: 'Most popular', note: 'Your full chart analysis (planets, houses, Dasha, overview) + 3 detailed answers' },
+    { id: 'full', title: 'Full life report + 3 questions', questions: 3, price: 151, mrp: 501, scope: 'full', tag: 'Best value', note: 'Everything: all 12 areas of life, lifetime outlook, current Dasha & transits, Sade Sati, Mangal dosha, remedies, plus 3 answers' },
+    { id: 'muh', title: 'Muhurat (auspicious date & time)', questions: 1, price: 51, mrp: 201, scope: 'muhurat', tag: 'New', note: 'Best dates and exact time windows for your event (marriage, griha pravesh, vehicle, business and more), matched to your own chart' }
   ]
 };
 </script>
@@ -996,19 +1001,19 @@ const titleOf = () => plan.title + (nExtra() ? ` + ${nExtra()} extra question${n
 function renderPlans() {
   $('plans').innerHTML = CONFIG.PLANS.map(p => `<button type="button" class="plan ${plan && plan.id === p.id ? 'on' : ''}" data-id="${esc(p.id)}" aria-pressed="${plan && plan.id === p.id}">
     ${p.tag ? `<span class="off">${esc(p.tag)}</span>` : ''}<h4>${esc(p.title)}</h4>
-    <div class="pr"><b>₹${p.price.toLocaleString('en-IN')}</b></div>${p.scope === 'questions' && p.questions > 1 ? `<div class="pq">about ₹${Math.round(p.price / p.questions)} per question</div>` : ''}<p>${esc(p.note)}</p></button>`).join('');
+    <div class="pr"><b>₹${p.price.toLocaleString('en-IN')}</b><s>₹${p.mrp.toLocaleString('en-IN')}</s><span class="dc">${Math.round((1 - p.price / p.mrp) * 100)}% OFF</span></div>${p.scope === 'questions' && p.questions > 1 ? `<div class="pq">about ₹${Math.round(p.price / p.questions)} per question</div>` : ''}<p>${esc(p.note)}</p></button>`).join('');
 }
 function renderQs() {
   if (!plan) return;
   const prev = [...document.querySelectorAll('#qBox textarea')].map(t => t.value), n = plan.questions + nExtra();
   $('qBox').innerHTML = Array.from({ length: n }, (_, i) => `<div class="f"><label for="q${i}">Question ${i + 1} *</label><textarea id="q${i}" rows="2" maxlength="600" placeholder="${['e.g. When will I get a stable job?', 'e.g. Is 2027 favourable for marriage?', 'e.g. Should I start my own business?', 'e.g. How is my health in the coming Saturn period?', 'e.g. Which remedy suits me most?'][i % 5]}">${esc(prev[i] || '')}</textarea></div>`).join('');
-  $('totAmt').textContent = '₹' + totalOf();
+  $('totAmt').textContent = '₹' + totalOf(); $('totSave').textContent = '₹' + (plan.mrp - plan.price + nExtra() * (CONFIG.ADDONS.extraQMrp - CONFIG.ADDONS.extraQ) + (wantFc() ? CONFIG.ADDONS.forecastMrp - CONFIG.ADDONS.forecast : 0));
 }
 $('plans').addEventListener('click', e => {
   const b = e.target.closest('.plan'); if (!b) return;
   plan = CONFIG.PLANS.find(p => p.id === b.dataset.id); renderPlans();
   $('extraQ').innerHTML = Array.from({ length: CONFIG.ADDONS.maxExtraQ + 1 }, (_, i) => `<option value="${i}">${i ? '+' + i : 'None'}</option>`).join('');
-  document.querySelectorAll('.aq').forEach(x => x.textContent = CONFIG.ADDONS.extraQ); document.querySelectorAll('.af').forEach(x => x.textContent = CONFIG.ADDONS.forecast);
+  document.querySelectorAll('.aq').forEach(x => x.textContent = CONFIG.ADDONS.extraQ); document.querySelectorAll('.aqm').forEach(x => x.textContent = CONFIG.ADDONS.extraQMrp); document.querySelectorAll('.afm').forEach(x => x.textContent = CONFIG.ADDONS.forecastMrp); document.querySelectorAll('.af').forEach(x => x.textContent = CONFIG.ADDONS.forecast);
   const mu = plan.scope === 'muhurat';
   $('muhBox').classList.toggle('hide', !mu); $('addons').classList.toggle('hide', mu);
   if (mu) { $('extraQ').value = '0'; $('fcast').checked = false; $('qBox').innerHTML = ''; const t = new Date(Date.now() + 19800000).toISOString().slice(0, 10), mx = new Date(Date.now() + 19800000 + 400 * 864e5).toISOString().slice(0, 10); $('mFrom').min = $('mTo').min = t; $('mFrom').max = $('mTo').max = mx; if (!$('mCity').value && birth) $('mCity').value = (birth.placeLabel || '').split(',')[0]; $('mEvent').focus(); }
