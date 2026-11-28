@@ -4,20 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- build: __ADMIN_PIN_HASH__ -->
-<meta name="description" content="Free Vedic kundli in seconds: Lahiri chart, Dasha, Panchang. Get a personal Jyotish report with your questions answered, delivered to your email. Reports from ₹31.">
+<meta name="description" content="Find your personal question answers based on the planetary movement in your Janam Kundli. Free Vedic astrology kundli, with your own questions answered by email.">
 <meta name="theme-color" content="#0b0e17">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nakshatra Darpan">
-<meta property="og:title" content="Nakshatra Darpan · Free Kundli & Personal Jyotish Report">
-<meta property="og:description" content="Free Vedic kundli in seconds, plus a personal report that answers your questions. Reports from ₹31, delivered to your email.">
+<meta property="og:title" content="Nakshatra Darpan · Your Questions Answered from Your Janam Kundli">
+<meta property="og:description" content="Find your personal question answers based on the planetary movement in your Janam Kundli (Vedic astrology).">
 <meta property="og:url" content="https://shashank-labs.github.io/jyotish-app/">
 <meta property="og:image" content="https://shashank-labs.github.io/jyotish-app/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Nakshatra Darpan: free Vedic kundli and personal Jyotish reports">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nakshatra Darpan · Free Kundli & Personal Jyotish Report">
-<meta name="twitter:description" content="Free Vedic kundli in seconds, plus a personal report that answers your questions. Reports from ₹31.">
+<meta name="twitter:title" content="Nakshatra Darpan · Your Questions Answered from Your Janam Kundli">
+<meta name="twitter:description" content="Find your personal question answers based on the planetary movement in your Janam Kundli (Vedic astrology).">
 <meta name="twitter:image" content="https://shashank-labs.github.io/jyotish-app/og-image.png">
 <title>Nakshatra Darpan · Kundli & Consultation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -134,6 +134,13 @@ td.n{white-space:nowrap}
 .plan .dc{flex-basis:auto;margin-top:2px;background:rgba(120,200,140,.16);color:#8fd6a0;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
 .addons s{color:var(--mut)}
 .addons .sv{display:flex;justify-content:space-between;color:#8fd6a0;font-size:13px;margin-top:4px}
+.flags{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin:0 0 16px}
+.flag{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.flag h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.flag .chip{font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.flag .chip.warn{background:rgba(224,160,58,.16);color:#f0c36d;border:1px solid rgba(224,160,58,.5)}
+.flag .chip.ok{background:rgba(127,194,155,.14);color:#8fd6a0;border:1px solid rgba(127,194,155,.45)}
+.flag p{margin:0;font-size:13.5px;color:var(--mut);line-height:1.55}
 .plan .pq{font-size:12px;color:var(--gold2);margin-top:2px}
 .addons{margin:14px 0;padding:14px;border:1px dashed var(--line2);border-radius:14px}
 .addons h4{margin:0 0 10px;font-size:15px}
@@ -264,6 +271,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
         </div>
         <div class="sec"><h3>1. Birth chart details</h3>
         <div class="pillars" id="pillars"></div>
+        <div class="flags" id="flags"></div>
         <div class="kwrap">
           <div>
             <div class="tabs" role="tablist"><button type="button" class="on" data-st="north">North Indian</button><button type="button" data-st="south">South Indian</button></div>
@@ -277,7 +285,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
         <div class="sec"><h3>5. Chart overview</h3><div class="prose" id="overview"></div></div>
         <div class="sec"><h3>6. Answers to your questions</h3>
           <p class="note" style="margin-top:0">Ask the Acharya below. Your answers come with this full chart, by email.</p>
-          <div class="status locked"><b style="color:var(--gold2)">Detailed life report · ₹101</b><br>Everything above, plus: analysis of all 12 areas of life · lifetime outlook Dasha by Dasha · current Dasha and transits · Sade Sati and Mangal dosha · personal remedies (Upayas).</div>
+          <div class="status locked"><b style="color:var(--gold2)">Detailed life report · ₹<span id="fullPrice"></span></b><br>Everything above, plus: analysis of all 12 areas of life · lifetime outlook Dasha by Dasha · current Dasha and transits · what Sade Sati and Mangal dosha mean for you · personal remedies (Upayas).</div>
         </div>
         <p class="note" id="tobNote"></p>
       </section>
@@ -965,6 +973,25 @@ function chartOverview(c) {   // a plain-language summary built only from the co
   if (c.md) p.push(`<p>You are now in <b>${esc(c.md.lord)} Mahadasha</b> with ${esc(c.ad.lord)} Antardasha, running till ${fmtDate(c.ad.end)}.</p>`);
   return p.join('');
 }
+
+function sadeInfo(c) {
+  const MON = 30.44 * 864e5, now = Date.now(), moon = c.P.Moon.sign, off = t => (AS.signOf(AS.sidereal(t).pos.Saturn.lon) - moon + 12) % 12, inSet = t => [11, 0, 1].includes(off(t));
+  const cur = off(now), active = [11, 0, 1].includes(cur), fmt = t => new Date(t).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+  if (active) {
+    let a = now, gap = 0; for (let i = 1; i <= 120 && gap < 8; i++) { const t = now - i * MON; if (inSet(t)) { a = t; gap = 0; } else gap++; }
+    let b = now; gap = 0; for (let i = 1; i <= 120 && gap < 8; i++) { const t = now + i * MON; if (inSet(t)) { b = t; gap = 0; } else gap++; }
+    return { active: true, phase: cur === 11 ? 'rising' : cur === 0 ? 'peak' : 'setting', from: fmt(a), to: fmt(b) };
+  }
+  for (let i = 1; i <= 360; i++) { const t = now + i * MON; if (inSet(t)) return { active: false, next: fmt(t), dhaiya: cur === 3 || cur === 7 ? cur + 1 : 0 }; }
+  return { active: false, next: '', dhaiya: 0 };
+}
+function paintFlags(c) {
+  const m = c.manglik, sd = sadeInfo(c);
+  const flag = (t, ok, label, txt) => `<div class="flag"><h4>${t}<span class="chip ${ok ? 'ok' : 'warn'}">${label}</span></h4><p>${txt}</p></div>`;
+  $('flags').innerHTML =
+    flag('Mangal dosha', !m.is, m.is ? 'Present' : 'Not present', m.is ? `Mars is in your ${ORD(m.house)} house. This is very common, and its effect is often balanced by other factors in the chart. It matters mainly when matching a marriage.` : `Mars is in your ${ORD(m.house)} house, so there is no Mangal dosha from your Lagna.`)
+    + flag('Sade Sati', !sd.active, sd.active ? 'Active now' : 'Not active', sd.active ? `Saturn is in its ${sd.phase} phase over your Moon sign, from about ${esc(sd.from)} to about ${esc(sd.to)}. A testing but growth-giving period that rewards patience and steady work.` : `Saturn is not over your Moon sign now.${sd.next ? ` Your next Sade Sati begins around ${esc(sd.next)}.` : ''}${sd.dhaiya ? ` Saturn is in the ${ORD(sd.dhaiya)} house from your Moon (a Dhaiya period), a milder phase.` : ''}`);
+}
 function renderChart() {
   const c = chart, b = birth, P = c.P;
   $('emptyCard').classList.add('hide'); $('chartCard').classList.remove('hide'); $('askCard').classList.remove('hide');
@@ -973,6 +1000,7 @@ function renderChart() {
   const pill = (k, v, s) => `<div class="pill"><span>${k}</span><b>${esc(v)}</b><small>${esc(s)}</small></div>`;
   $('pillars').innerHTML = pill('Lagna', SN[c.asc.sign], `${SE[c.asc.sign]} ${c.asc.deg}`) + pill('Chandra Rashi', SN[P.Moon.sign], `${SE[P.Moon.sign]} ${P.Moon.deg}`)
     + pill('Janma Nakshatra', P.Moon.nak.name, `Pada ${P.Moon.nak.pada} · lord ${P.Moon.nak.lord}`) + pill('Surya Rashi', SN[P.Sun.sign], `${SE[P.Sun.sign]} ${P.Sun.deg}`);
+  $('fullPrice').textContent = CONFIG.PLANS.find(p => p.id === 'full').price; paintFlags(c);
   $('kundli').innerHTML = kundliSVG(c, style) + kLegend(style);
   const kv = a => a.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
   $('panchang').innerHTML = kv([['Vara', c.panchang.vara], ['Tithi', c.panchang.tithi], ['Nakshatra', c.panchang.nakshatra], ['Yoga', c.panchang.yoga], ['Lagna lord', c.lagnaLord], ['Rashi lord', c.moonLord], ['Ayanamsa', c.ayanamsa.toFixed(2) + '° Lahiri']]);
