@@ -25,6 +25,8 @@ jobs:
         run: node scripts/build.mjs
         env:
           ADMIN_PIN: ${{ secrets.ADMIN_PIN }}
+      - name: Copy preview image
+        run: cp og-image.png dist/og-image.png
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
