@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- build: __ADMIN_PIN_HASH__ -->
+<meta name="description" content="Free Vedic kundli in seconds: Lahiri chart, Dasha, Panchang. Get a personal Jyotish report with your questions answered, delivered to your email. Reports from ₹31.">
+<meta name="theme-color" content="#0b0e17">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nakshatra Darpan">
+<meta property="og:title" content="Nakshatra Darpan · Free Kundli & Personal Jyotish Report">
+<meta property="og:description" content="Free Vedic kundli in seconds, plus a personal report that answers your questions. Reports from ₹31, delivered to your email.">
+<meta property="og:url" content="https://shashank-labs.github.io/jyotish-app/">
+<meta property="og:image" content="https://shashank-labs.github.io/jyotish-app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nakshatra Darpan: free Vedic kundli and personal Jyotish reports">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nakshatra Darpan · Free Kundli & Personal Jyotish Report">
+<meta name="twitter:description" content="Free Vedic kundli in seconds, plus a personal report that answers your questions. Reports from ₹31.">
+<meta name="twitter:image" content="https://shashank-labs.github.io/jyotish-app/og-image.png">
 <title>Nakshatra Darpan · Kundli & Consultation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -291,10 +306,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed var(--line2);border-r
         <div id="qBox"></div>
         <p class="status hide" id="sealNote" style="font-size:14px">Your questions are sealed before they leave your phone. Reviewers cannot read them; they are opened only to write your report.</p>
         <div class="f"><label for="cLang">Report language *</label><select id="cLang"><option value="en">English</option><option value="hi">हिन्दी (Hindi)</option></select></div>
-        <div class="row r2">
-          <div class="f"><label for="cEmail">Your email *</label><input id="cEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
-          <div class="f"><label for="cPhone">Your WhatsApp number *</label><input id="cPhone" inputmode="tel" autocomplete="tel" placeholder="98xxxxxxxx"></div>
-        </div>
+        <div class="f"><label for="cEmail">Your email *</label><input id="cEmail" type="email" autocomplete="email" placeholder="you@email.com"><p class="note" style="margin:6px 0 0">Your report and order updates are sent to this email. Please check it carefully.</p></div>
         <button class="btn pri full" type="button" id="proceed">Proceed to pay</button>
       </section>
 
@@ -1021,7 +1033,7 @@ $('plans').addEventListener('click', e => {
   else { renderQs(); $('q0').focus(); }
 });
 $('extraQ').addEventListener('change', renderQs); $('fcast').addEventListener('change', renderQs);
-const last = store.get('jy_contact', {}); if (last.email) $('cEmail').value = last.email; if (last.phone) $('cPhone').value = last.phone; if (last.lang) $('cLang').value = last.lang;
+const last = store.get('jy_contact', {}); if (last.email) $('cEmail').value = last.email; if (last.lang) $('cLang').value = last.lang;
 const emailOk = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
 $('sealNote').classList.toggle('hide', !CONFIG.SEAL_KEY);
 const b64 = buf => { let s = ''; new Uint8Array(buf).forEach(x => s += String.fromCharCode(x)); return btoa(s); };
@@ -1049,12 +1061,11 @@ $('proceed').addEventListener('click', async () => {
     qs = [...document.querySelectorAll('#qBox textarea')].map(t => t.value.trim());
     const miss = qs.findIndex(q => !q); if (miss >= 0) return toast(`Please write question ${miss + 1}`), $('q' + miss).focus();
   }
-  const email = $('cEmail').value.trim(), phone = $('cPhone').value.trim();
+  const email = $('cEmail').value.trim();
   if (!emailOk(email)) return toast('Enter a valid email'), $('cEmail').focus();
-  if (digits(phone).length < 10) return toast('Enter a valid WhatsApp number'), $('cPhone').focus();
-  if ($('remember').checked) store.set('jy_contact', { email, phone, lang: $('cLang').value }); else forget('jy_contact');
+  if ($('remember').checked) store.set('jy_contact', { email, lang: $('cLang').value }); else forget('jy_contact');
   const d = new Date(), id = `ND${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-  order = { id, plan: { ...plan, title: titleOf(), price: totalOf() }, extraQ: nExtra(), forecast: wantFc(), muh, qs, email, phone, lang: $('cLang').value, sealed: '' };
+  order = { id, plan: { ...plan, title: titleOf(), price: totalOf() }, extraQ: nExtra(), forecast: wantFc(), muh, qs, email, lang: $('cLang').value, sealed: '' };
   if (CONFIG.SEAL_KEY) {
     try { order.sealed = await seal(JSON.stringify({ qs }), id); }
     catch (e) { console.error(e); toast('Could not seal questions on this browser; they will be sent as plain text'); }
@@ -1077,7 +1088,7 @@ $('saveQr').addEventListener('click', () => {   // PNG of the QR so customers on
 });
 $('backPlans').addEventListener('click', () => { $('payCard').classList.add('hide'); $('askCard').classList.remove('hide'); $('askCard').scrollIntoView({ behavior: 'smooth' }); });
 const api = async (op, data = {}, auth = false) => {
-  if (!CONFIG.API_URL) throw new Error('Ordering is not switched on yet. Please contact us on WhatsApp.');
+  if (!CONFIG.API_URL) throw new Error('Ordering is not switched on yet. Please try again later.');
   const h = { 'content-type': 'application/json' };
   if (auth) { const u = window.firebase && firebase.apps.length ? firebase.auth().currentUser : null; if (!u) throw new Error('Please sign in again'); h.authorization = 'Bearer ' + await u.getIdToken(); }
   let r; try { r = await fetch(CONFIG.API_URL, { method: 'POST', headers: h, body: JSON.stringify({ op, ...data }) }); } catch (e) { throw new Error('Could not reach the server. Check your internet and try again.'); }
@@ -1115,7 +1126,7 @@ $('submitOrder').addEventListener('click', async () => {
   const btn = $('submitOrder'), label = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Submitting…';
   try {
     const shot = file ? await shrinkShot(file) : '';
-    const payload = { id: order.id, planId: order.plan.id, price: order.plan.price, extraQ: order.extraQ, forecast: order.forecast, muh: order.muh, email, phone: order.phone, lang: order.lang, birth, utr, shot };
+    const payload = { id: order.id, planId: order.plan.id, price: order.plan.price, extraQ: order.extraQ, forecast: order.forecast, muh: order.muh, email, lang: order.lang, birth, utr, shot };
     if (order.sealed) payload.sealed = order.sealed; else payload.qs = order.qs;
     await api('create', payload);
     order.email = email; order.utr = utr; order.hasShot = !!shot;
@@ -1237,7 +1248,7 @@ function ordHTML(o) {
     : o.status === 'failed' ? `<div class="btns" style="margin-top:12px"><button class="btn pri sm" data-act="retry">Retry report</button></div>`
     : o.status === 'ready' ? `<div class="btns" style="margin-top:12px"><button class="btn sm" data-act="resend">Resend email</button><button class="btn sm" data-act="regen1">Regenerate</button></div><div class="confirm hide" data-box="rg"><b>Write this report again?</b><br><small>It replaces the report, costs one more Claude call, and emails the customer the new version. Questions are only kept for 7 days after delivery.</small><div class="btns" style="margin-top:8px"><button class="btn pri sm" data-act="regen2">Yes, regenerate</button></div></div>` : '';
   return `<div class="ord" data-id="${esc(o.id)}"><div class="top"><div><div class="amt">₹${o.plan.price}</div><div class="note" style="margin:2px 0 0">${esc(o.plan.title)} · ${o.lang === 'hi' ? 'Hindi' : 'English'}</div></div><div style="text-align:right"><span class="badge ${cls}">${esc(lab)}</span><div class="note" style="margin:6px 0 0">${esc(o.id)}<br>${when(o.createdAt)}</div></div></div>
-    <div class="meta"><b>${esc(o.name)}</b><br>${esc(o.email)} · <a href="https://wa.me/${waNum(o.phone)}" target="_blank" rel="noopener" style="color:var(--gold2)">${esc(o.phone)}</a><br>${o.utr ? `UTR <b>${esc(o.utr)}</b> <button class="btn sm" data-act="copy" data-v="${esc(o.utr)}" style="padding:2px 8px">Copy</button>` : ''}${o.shotLater ? '<br><b style="color:#f19a86">Screenshot promised on WhatsApp</b>' : ''}${o.hasShot && !o.utr ? '<br>Payment screenshot attached' : ''}${o.approvedBy ? `<br>Approved by ${esc(o.approvedBy)}` : ''}${o.rejectedBy ? `<br>Rejected by ${esc(o.rejectedBy)}: ${esc(o.rejectReason || '')}` : ''}${o.error ? `<br><span style="color:#f19a86">${esc(o.error)}</span>` : ''}${o.tokensOut ? `<br><small>${esc(o.model || '')}${o.effort ? ' · effort ' + esc(o.effort) + ', thinking ' + esc(o.thinking || '') : ' · before settings were recorded'} · ${o.tokensIn} in / ${o.tokensOut} out tokens · cost ≈ ₹${((o.tokensIn * 2 + o.tokensOut * 10) / 1e6 * 93).toFixed(1)}</small>` : ''}${o.status === 'ready' && o.emailSent === false ? '<br><span style="color:#f19a86">Email could not be sent. Use Resend.</span>' : ''}</div>${acts}</div>`;
+    <div class="meta"><b>${esc(o.name)}</b><br>${esc(o.email)}${o.phone ? ` · <a href="https://wa.me/${waNum(o.phone)}" target="_blank" rel="noopener" style="color:var(--gold2)">${esc(o.phone)}</a>` : ''}<br>${o.utr ? `UTR <b>${esc(o.utr)}</b> <button class="btn sm" data-act="copy" data-v="${esc(o.utr)}" style="padding:2px 8px">Copy</button>` : ''}${o.shotLater ? '<br><b style="color:#f19a86">Screenshot promised on WhatsApp</b>' : ''}${o.hasShot && !o.utr ? '<br>Payment screenshot attached' : ''}${o.approvedBy ? `<br>Approved by ${esc(o.approvedBy)}` : ''}${o.rejectedBy ? `<br>Rejected by ${esc(o.rejectedBy)}: ${esc(o.rejectReason || '')}` : ''}${o.error ? `<br><span style="color:#f19a86">${esc(o.error)}</span>` : ''}${o.tokensOut ? `<br><small>${esc(o.model || '')}${o.effort ? ' · effort ' + esc(o.effort) + ', thinking ' + esc(o.thinking || '') : ' · before settings were recorded'} · ${o.tokensIn} in / ${o.tokensOut} out tokens · cost ≈ ₹${((o.tokensIn * 2 + o.tokensOut * 10) / 1e6 * 93).toFixed(1)}</small>` : ''}${o.status === 'ready' && o.emailSent === false ? '<br><span style="color:#f19a86">Email could not be sent. Use Resend.</span>' : ''}</div>${acts}</div>`;
 }
 function paintOrders() {
   const n = orders.filter(TABS.review).length; $('nReview').textContent = n ? `(${n})` : '';
@@ -1270,7 +1281,7 @@ window.addEventListener('hashchange', route); route();
 
 $('remember').addEventListener('change', () => { if (!$('remember').checked) forget('jy_last', 'jy_contact'); });
 $('clearAll').addEventListener('click', () => {
-  ['nm', 'dob', 'tob', 'pob', 'cEmail', 'cPhone', 'utr', 'mLat', 'mLon'].forEach(id => $(id).value = '');
+  ['nm', 'dob', 'tob', 'pob', 'cEmail', 'utr', 'mLat', 'mLon'].forEach(id => $(id).value = '');
   $('gd').value = 'Male'; $('tobU').checked = false; $('tob').disabled = false; $('remember').checked = false; $('cLang').value = 'en';
   place = null; chart = null; birth = null; plan = null; order = null; $('qBox').innerHTML = ''; $('addons').classList.add('hide'); $('fcast').checked = false; syncPh(); forget('jy_last', 'jy_contact');
   $('coordLine').innerHTML = '<span>Coordinates fill in automatically when you pick a place.</span>';
